@@ -1,0 +1,22 @@
+/*
+Computes the sum of two bits.
+
+By evaluating the minterms from the truth table:
+a | b | caryy | sum
+0 | 0 |   0   |  0
+0 | 1 |   0   |  1
+1 | 0 |   0   |  1
+1 | 1 |   1   |  0
+
+sum = a'b + ab' = a Xor b
+carry = ab = a And b
+*/
+CHIP HalfAdder {
+    IN a, b;    // 1-bit inputs
+    OUT sum,    // Right bit of a + b 
+        carry;  // Left bit of a + b
+
+    PARTS:
+    Xor(a=a, b=b, out=sum);
+    And(a=a, b=b, out=carry);
+}

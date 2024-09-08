@@ -1,0 +1,14 @@
+/*
+16-bit incrementer:
+out = in + 1
+
+Just use the internal bus in Add16
+*/
+CHIP Inc16 {
+    IN in[16];
+    OUT out[16];
+    
+    PARTS:
+    // b is by default = 0
+    Add16(a=in, b[0]=true, out=out);
+}

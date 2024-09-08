@@ -1,0 +1,88 @@
+/*
+ALU (Arithmetic Logic Unit):
+Computes out = one of the following functions:
+               0, 1, -1,
+               x, y, !x, !y, -x, -y,
+               x + 1, y + 1, x - 1, y - 1,
+               x + y, x - y, y - x,
+               x & y, x | y
+on the 16-bit inputs x, y,
+according to the input bits zx, nx, zy, ny, f, no.
+In addition, computes the two output bits:
+if (out == 0) zr = 1, else zr = 0
+if (out < 0)  ng = 1, else ng = 0
+*/
+
+// Implementation: Manipulates the x and y inputs
+// and operates on the resulting values, as follows:
+// if (zx == 1) sets x = 0        // 16-bit constant
+// if (nx == 1) sets x = !x       // bitwise not
+// if (zy == 1) sets y = 0        // 16-bit constant
+// if (ny == 1) sets y = !y       // bitwise not
+// if (f == 1)  sets out = x + y  // integer 2's complement addition
+// if (f == 0)  sets out = x & y  // bitwise and
+// if (no == 1) sets out = !out   // bitwise not
+
+CHIP ALU {
+    IN  
+        x[16], y[16],  // 16-bit inputs        
+        zx, // zero the x input?
+        nx, // negate the x input?
+        zy, // zero the y input?
+        ny, // negate the y input?
+        f,  // compute (out = x + y) or (out = x & y)?
+        no; // negate the out output?
+    OUT 
+        out[16], // 16-bit output
+        zr,      // if (out == 0) equals 1, else 0
+        ng;      // if (out < 0)  equals 1, else 0
+
+    PARTS:
+    // # zx and nx:
+    // if (zx == 0) sets out_x1 = x, else out_x1 = 0000000000000000
+    Mux16(a=x, b=false, sel=zx, out=out_x1);
+
+    // if (nx == 0) sets out_x2 = out_x1 (remains the same), else out_x2 = not_x
+    Not16(in=out_x1, out=not_x);
+    Mux16(a=out_x1, b=not_x, sel=nx, out=out_x2);
+    // -------------------------------------------------------------------------
+
+    // # zy and ny:
+    // if (zy == 0) sets out_y1 = y, else out_y1 = 0000000000000000
+    Mux16(a=y, b=false, sel=zy, out=out_y1);
+
+    // if (ny == 0) sets out_y2 = out_y1 (remains the same), else out_y2 = not_y
+    Not16(in=out_y1, out=not_y);
+    Mux16(a=out_y1, b=not_y, sel=ny, out=out_y2);
+    // -------------------------------------------------------------------------
+
+    // # f:
+    And16(a=out_x2, b=out_y2, out=xy_and);
+    Add16(a=out_x2, b=out_y2, out=xy_add);
+
+    // if (f == 0) sets temp_out = out_x2 & out_y2, else temp_out = out_x2 + out_y2
+    Mux16(a=xy_and, b=xy_add, sel=f, out=temp_out);
+    // -------------------------------------------------------------------------
+    
+    // # no:
+    Not16(in=temp_out, out=not_temp_out);
+
+    // if (no == 0) sets out = temo_out , else out = not_temp_out
+    // slicing first and second 8-bits and the msb
+    Mux16(a=temp_out, b=not_temp_out, sel=no, out=out, out[0..7]=p1, out[8..15]=p2, out[15..15]=msb);
+    // -------------------------------------------------------------------------
+
+    // # zr    
+
+    // Oring the out 16-Way by slicing it, there must be no single 1 in out in order to zr=1
+    Or8Way(in=p1, out=or_out1);
+    Or8Way(in=p2, out=or_out2);
+    Or(a=or_out1, b=or_out2, out=or_out3);
+
+    // if (or_out3 == 0) set zr = 1, else zr = 0
+    Mux(a=true, b=false, sel=or_out3, out=zr);
+    // -------------------------------------------------------------------------    
+
+    // # ng
+    Or(a=false, b=msb, out=ng);
+}
