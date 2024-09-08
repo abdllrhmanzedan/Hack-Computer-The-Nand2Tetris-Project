@@ -1,0 +1,55 @@
+/*
+8-way demultiplexor:
+same as 4-way but we just need to make the 8 minterms
+other better implementation is to break it to smaller ones
+
+[a, b, c, d, e, f, g, h] = [in, 0,  0,  0,  0,  0,  0,  0] if sel = 000
+                           [0, in,  0,  0,  0,  0,  0,  0] if sel = 001
+                           [0,  0, in,  0,  0,  0,  0,  0] if sel = 010
+                           [0,  0,  0, in,  0,  0,  0,  0] if sel = 011
+                           [0,  0,  0,  0, in,  0,  0,  0] if sel = 100
+                           [0,  0,  0,  0,  0, in,  0,  0] if sel = 101
+                           [0,  0,  0,  0,  0,  0, in,  0] if sel = 110
+                           [0,  0,  0,  0,  0,  0,  0, in] if sel = 111
+*/
+CHIP DMux8Way {
+    IN in, sel[3];
+    OUT a, b, c, d, e, f, g, h;
+
+    PARTS:
+    Not(in=sel[2], out=nsel2);
+
+    // First, split the input signal into two paths (b1 and b2) based on sel[2]
+    And(a=in, b=nsel2, out=b1);
+    And(a=in, b=sel[2], out=b2);
+
+    // Use two 4-way demuxers to route the input to the final outputs
+    DMux4Way(in=b1, sel=sel[0..1], a=a, b=b, c=c, d=d);
+    DMux4Way(in=b2, sel=sel[0..1], a=e, b=f, c=g, d=h);
+}
+
+
+/*
+Another implementation
+CHIP DMux8Way {
+    IN in, sel[3];
+    OUT a, b, c, d, e, f, g, h;
+
+    PARTS:
+    Not(in=sel[1], out=nsel1);
+    Not(in=sel[2], out=nsel2);
+    
+    And(a=in, b=nsel2, out=b1);
+    And(a=in, b=sel[2], out=b2);
+    
+    And(a=b1, b=nsel1, out=bb1);
+    And(a=b1, b=sel[1], out=bb2);
+    And(a=b2, b=nsel1, out=bb3);
+    And(a=b2, b=sel[1], out=bb4);
+
+    DMux(in=bb1, sel=sel[0], a=a, b=b);
+    DMux(in=bb2, sel=sel[0], a=c, b=d);
+    DMux(in=bb3, sel=sel[0], a=e, b=f);
+    DMux(in=bb4, sel=sel[0], a=g, b=h);   
+}
+*/

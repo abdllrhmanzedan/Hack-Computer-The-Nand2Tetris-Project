@@ -1,0 +1,24 @@
+/* 
+Multiplexor:
+2^n × 1 MUX has n selectors, chooses only one of the inputs to be on the output line.
+the selectors chooses the corresponding minterm to be outputed.
+means: sel2,sel1,sel0=101 it will choose 5th input to be outputed (I5)
+out = in[i].m[i], where m[i] is the corresponding minterm
+
+if (sel = 0) out = a, else out = b
+sel | out
+0   | a
+1   | b
+out = a.sel' + b.sel
+out = a.m[0] + b.m[1]
+*/
+CHIP Mux {
+    IN a, b, sel;
+    OUT out;
+
+    PARTS:
+    Not(in=sel, out=nsel);
+    And(a=a, b=nsel, out=ifa);
+    And(a=b, b=sel, out=ifb);
+    Or (a=ifa, b=ifb, out=out);
+}

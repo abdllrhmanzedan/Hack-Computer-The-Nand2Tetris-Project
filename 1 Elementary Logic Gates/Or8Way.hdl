@@ -1,0 +1,19 @@
+/*
+8-way Or gate: 
+oring the whole bust together
+
+out = in[0] Or in[1] Or ... Or in[7]
+*/
+CHIP Or8Way {
+    IN in[8];
+    OUT out;
+
+    PARTS:
+    Or(a=in[0], b=in[1], out=till1);
+    Or(a=till1, b=in[2], out=till2);
+    Or(a=till2, b=in[3], out=till3);
+    Or(a=till3, b=in[4], out=till4);
+    Or(a=till4, b=in[5], out=till5);
+    Or(a=till5, b=in[6], out=till6);
+    Or(a=till6, b=in[7], out=out);
+}

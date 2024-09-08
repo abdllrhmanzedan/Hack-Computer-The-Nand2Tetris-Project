@@ -1,0 +1,41 @@
+/*
+Exclusive-or chip:
+The XOR gate outputs 1 if and only if one of the inputs (a or b) is 1, but not both.
+If both inputs are either 0 or 1, the output will be 0. 
+
+More generally, for multiple inputs, the XOR gate can be thought of as outputting 1
+when the number of 1s in the input set is odd
+
+if ((a and Not(b)) or (Not(a) and b)) out = 1, else out = 0
+*/
+CHIP Xor {
+    IN a, b;
+    OUT out;
+
+    PARTS:
+    Not (in=a, out=na);
+    Not (in=b, out=nb);
+    And (a=a, b=nb, out=aAndnb);
+    And (a=na, b=b, out=naAndb);
+    Or  (a=aAndnb, b=naAndb, out=out);
+}
+
+
+/*
+Different implementation to the same chip:
+
+The above implementation based on the minterms(when chip outputs 1) in the truth table,
+and following one is based on maxterms(when chip outputs 0)
+
+CHIP Xor {
+    IN a, b;
+    OUT out;
+
+    PARTS:
+    Not (in=a, out=na);
+    Not (in=b, out=nb);
+    Or  (a=a, b=b, out=aOrb);
+    Or  (a=na, b=nb, out=naOrnb);
+    And (a=aOrb, b=naOrnb, out=out);   
+}
+*/

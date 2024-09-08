@@ -1,0 +1,55 @@
+/*
+4-way demultiplexor:
+1 x 2^n chossing one outputline to be on it.
+out[i] = in.m[i], where m[i] is the corresponding minterm
+
+[a, b, c, d] = [in, 0, 0, 0] if sel = 00
+               [0, in, 0, 0] if sel = 01
+               [0, 0, in, 0] if sel = 10
+               [0, 0, 0, in] if sel = 11
+*/
+CHIP DMux4Way {
+    IN in, sel[2];
+    OUT a, b, c, d;
+
+    PARTS:
+    Not(in=sel[1], out=nsel1);
+
+    // First, split the input signal into two branchs (b1 and b2) based on sel[1]
+    And(a=in, b=nsel1, out=b1);
+    And(a=in, b=sel[1], out=b2);
+    
+    // Use two 2-way demuxers to route the input to the final outputs
+    DMux(in=b1, sel=sel[0], a=a, b=b);
+    DMux(in=b2, sel=sel[0], a=c, b=d);
+}
+
+
+/*
+Different implementation to the same chip:
+
+By generating the 4 minterms and anding with the input
+
+CHIP DMux4Way {
+    IN in, sel[2];
+    OUT a, b, c, d;
+
+    PARTS:
+    Not(in=sel[0], out=not_sel0);
+    Not(in=sel[1], out=not_sel1);
+    
+    // Generating the minterms (m0, m1, m2, m3) using the AND gates
+    // Each minterm represents one combination of the selector inputs
+    And(a=not_sel1, b=not_sel0, out=m0);
+    And(a=not_sel1, b=sel[0], out=m1);
+    And(a=sel[1], b=not_sel0, out=m2);
+    And(a=sel[1], b=sel[0], out=m3);
+    
+    // Routing the input to the corresponding output based on the minterm
+    // The input is ANDed with the minterm to determine which output will carry the input signal
+    And(a=in, b=m0, out=a);
+    And(a=in, b=m1, out=b);
+    And(a=in, b=m2, out=c);
+    And(a=in, b=m3, out=d);
+}
+*/

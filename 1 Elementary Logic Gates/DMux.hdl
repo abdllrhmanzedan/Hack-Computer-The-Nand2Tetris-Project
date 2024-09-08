@@ -1,0 +1,23 @@
+/*
+Demultiplexor:
+It's just an enabled decoder, where (in) is the enable and (sel) are inputs that produces the minterms
+as in n x 2^n decoder: all outputs are zeros except the equivlent min term based on xyz(inputs)
+if x'y'z the D[1]=1 and other 15 D[i]=0.
+
+
+sel | a | b
+0   | in| 0
+1   | 0 | in
+out[i] = m[i].in where m[i] is the corresponding minterm based on selector
+a (out[0]) = sel'(m[0]).in
+b (out[1]) = sel (m[1]).in
+*/
+CHIP DMux {
+    IN in, sel;
+    OUT a, b;
+
+    PARTS:
+    Not(in=sel, out=nsel);
+    And(a=in, b=nsel, out=a);
+    And(a=in, b=sel, out=b);
+}

@@ -1,0 +1,36 @@
+/*
+4-way 16-bit multiplexor:
+4×1 mux and having 2bit selector. The truth table divides it into to equla halves
+so we select the candidate one from each half
+
+sel | out
+00  | a
+01  | b
+---------
+10  | c
+11  | d
+
+from first half we pick based on sel[0]=0, branch1 = a, else branch1 = b
+from second half we pick based on sel[1]=0, branch2=c, else branch2 = d
+then after having the result for each half, we pick whic half to go with based on sel[1]
+
+
+out = a if sel = 00
+      b if sel = 01
+      c if sel = 10
+      d if sel = 11
+*/
+CHIP Mux4Way16 {
+    IN a[16], b[16], c[16], d[16], sel[2];
+    OUT out[16];
+    
+    PARTS:
+    // b stands for branch
+
+    // First layer: Select between adjacent pairs of inputs based on sel[0].
+    Mux16(a=a, b=b, sel=sel[0], out=b1);
+    Mux16(a=c, b=d, sel=sel[0], out=b2);
+
+    // Second layer: Select between the two results from the previous layer using sel[1].
+    Mux16(a=b1, b=b2, sel=sel[1], out=out);
+}
