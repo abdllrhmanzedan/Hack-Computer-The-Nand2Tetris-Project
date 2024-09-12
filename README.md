@@ -11,7 +11,7 @@ Here’s what I’ve Done so far in the project (in-time progress):
 1 - [x] **Elementary Logic Gates**: Designed basic gates like And, Or, Not, Mux, DMux, and more using HDL.
 2 - [x] **Adders Family and ALU**: Implemented the adder circuits and the Arithmetic Logic Unit (ALU), responsible for performing both arithmetic and logic operations with efficiency and precision.
 3 - [x] **Memory Units**: Built registers and RAM, key components for storage.
-4 - [ ] **Machine Language**: Learned and implemented programs using the Hack machine language.
+4 - [x] **Machine Language**: Learned and implemented programs using the Hack machine language.
 5 - [ ] **CPU and Architecture**: Combined all components to build a functional CPU and computer architecture.
 
 ## From Hack to Tetris: Hack-Computer Software
