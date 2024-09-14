@@ -1,0 +1,110 @@
+/*
+The Hack Central Processing unit (CPU).
+Parses the binary code in the instruction input and executes it according to the
+Hack machine language specification. In the case of a C-instruction, computes the
+function specified by the instruction. If the instruction specifies to read a memory
+value, the inM input is expected to contain this value. If the instruction specifies
+to write a value to the memory, sets the outM output to this value, sets the addressM
+output to the target address, and asserts the writeM output (when writeM = 0, any
+value may appear in outM).
+If the reset input is 0, computes the address of the next instruction and sets the
+pc output to that value. If the reset input is 1, sets pc to 0.
+Note: The outM and writeM outputs are combinational: they are affected by the
+instruction's execution during the current cycle. The addressM and pc outputs are
+clocked: although they are affected by the instruction's execution, they cojumpit to
+their new values only in the next cycle.
+
+C-Instruction
+1  1  1  a  c1 c2 c3 c4 c5 c6 d1 d2 d3 j1 j2 j3
+15 14 13 12 11 10 09 08 07 06 05 04 03 02 01 00
+*/
+CHIP CPU {
+
+    IN  inM[16],         // M value input  (M = contents of RAM[A])
+        instruction[16], // Instruction for execution
+        reset;           // Signals whether to re-start the current
+                         // program (reset==1) or continue executing
+                         // the current program (reset==0).
+
+    OUT outM[16],        // M value output
+        writeM,          // Write to M?
+        addressM[15],    // Address in data memory (of M)
+        pc[15];          // address of next instruction
+
+    PARTS:
+    /*
+        if (A-instruction)
+            Ain=instruction
+            Awrite=1
+        else
+            Ain=ALUout
+            Awrite=d1 (if it's a destination)
+    */
+    Mux16(a=instruction, b=ALUout, sel=instruction[15], out=Ain);
+    Mux(a=true, b=instruction[05], sel=instruction[15], out=Awrite);
+    ARegister(in=Ain, load=Awrite, out=Aout);
+
+    /*
+        if (A-instruction)
+            ALUin=Aout
+        else if (bit-a)
+            ALUin=inM
+    */
+    And(a=instruction[15], b=instruction[12], out=ALUsel);
+    Mux16(a=Aout, b=inM, sel=ALUsel, out=ALUin);
+    
+    /*
+        if (C-instruction & instruction[4](d2))
+            Dout=ALUout
+    */
+    And(a=instruction[15], b=instruction[4], out=Dwrite);
+    DRegister(in=ALUout, load=Dwrite, out=Dout);
+
+    /*
+        Comp bits controls ALU:
+        c1 c2 c3 c4 c5 c6
+        11 10 09 08 07 06
+    */
+    ALU(x=Dout, y=ALUin, zx=instruction[11], nx=instruction[10], zy=instruction[9],
+    ny=instruction[8], f=instruction[7], no=instruction[6], out=ALUout, zr=zero, ng=neg);
+
+    /*
+        Check for the Jump:
+        gt: out >  0 (!neg & !zero)
+        eq: out == 0 (from ALU)
+        ge: out >= 0 (gt | zero)
+        lt: out <  0 (from ALU)
+        ne: out != 0 (!zero)
+        le: out <= 0 (neg | zero)
+    */
+    Not(in=neg, out=notNeg);
+    Not(in=zero, out=notZero);
+    And(a=notNeg, b=notZero, out=gt);
+    Or(a=gt, b=zero, out=ge);
+    Or(a=neg, b=zero, out=le);
+
+    Mux8Way16(a=false, b[0]=gt, c[0]=zero, d[0]=ge,
+    e[0]=neg, f[0]=notZero, g[0]=le, h[0]=true, sel=instruction[0..2], out[0]=jump);
+    And(a=jump, b=instruction[15], out=PCjump);
+
+    /*
+        OUTPUTS:
+        OutM = Always ALUout
+        writeM = When d1 is on and its an c
+        addressM = always points to A
+        pc = based on the reset, correct jump or not
+    */
+    Or16(a=false, b=ALUout, out=outM);
+    And(a=instruction[15], b=instruction[3], out=writeM);
+    Or16(a=false, b=Aout, out[0..14]=addressM);
+    
+    /*
+        if (reset)
+            pc=0
+        else if (correct_jump)
+            pc=Aout
+        else
+            pc++
+    */
+    PC(in=Aout, load=PCjump, inc=true, reset=reset, out[0..14]=pc);
+}
