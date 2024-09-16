@@ -39,48 +39,48 @@ CHIP ALU {
 
     PARTS:
     // # zx and nx:
-    // if (zx == 0) sets out_x1 = x, else out_x1 = 0000000000000000
-    Mux16(a=x, b=false, sel=zx, out=out_x1);
+    // if (zx == 0) sets outx1 = x, else outx1 = 0000000000000000
+    Mux16(a=x, b=false, sel=zx, out=outx1);
 
-    // if (nx == 0) sets out_x2 = out_x1 (remains the same), else out_x2 = not_x
-    Not16(in=out_x1, out=not_x);
-    Mux16(a=out_x1, b=not_x, sel=nx, out=out_x2);
+    // if (nx == 0) sets outx2 = outx1 (remains the same), else outx2 = notx
+    Not16(in=outx1, out=notx);
+    Mux16(a=outx1, b=notx, sel=nx, out=outx2);
     // -------------------------------------------------------------------------
 
     // # zy and ny:
-    // if (zy == 0) sets out_y1 = y, else out_y1 = 0000000000000000
-    Mux16(a=y, b=false, sel=zy, out=out_y1);
+    // if (zy == 0) sets outy1 = y, else outy1 = 0000000000000000
+    Mux16(a=y, b=false, sel=zy, out=outy1);
 
-    // if (ny == 0) sets out_y2 = out_y1 (remains the same), else out_y2 = not_y
-    Not16(in=out_y1, out=not_y);
-    Mux16(a=out_y1, b=not_y, sel=ny, out=out_y2);
+    // if (ny == 0) sets outy2 = outy1 (remains the same), else outy2 = noty
+    Not16(in=outy1, out=noty);
+    Mux16(a=outy1, b=noty, sel=ny, out=outy2);
     // -------------------------------------------------------------------------
 
     // # f:
-    And16(a=out_x2, b=out_y2, out=xy_and);
-    Add16(a=out_x2, b=out_y2, out=xy_add);
+    And16(a=outx2, b=outy2, out=xyand);
+    Add16(a=outx2, b=outy2, out=xyadd);
 
-    // if (f == 0) sets temp_out = out_x2 & out_y2, else temp_out = out_x2 + out_y2
-    Mux16(a=xy_and, b=xy_add, sel=f, out=temp_out);
+    // if (f == 0) sets tempout = outx2 & outy2, else tempout = outx2 + outy2
+    Mux16(a=xyand, b=xyadd, sel=f, out=tempout);
     // -------------------------------------------------------------------------
     
     // # no:
-    Not16(in=temp_out, out=not_temp_out);
+    Not16(in=tempout, out=nottempout);
 
-    // if (no == 0) sets out = temo_out , else out = not_temp_out
+    // if (no == 0) sets out = temoout , else out = nottempout
     // slicing first and second 8-bits and the msb
-    Mux16(a=temp_out, b=not_temp_out, sel=no, out=out, out[0..7]=p1, out[8..15]=p2, out[15..15]=msb);
+    Mux16(a=tempout, b=nottempout, sel=no, out=out, out[0..7]=p1, out[8..15]=p2, out[15]=msb);
     // -------------------------------------------------------------------------
 
     // # zr    
 
     // Oring the out 16-Way by slicing it, there must be no single 1 in out in order to zr=1
-    Or8Way(in=p1, out=or_out1);
-    Or8Way(in=p2, out=or_out2);
-    Or(a=or_out1, b=or_out2, out=or_out3);
+    Or8Way(in=p1, out=orout1);
+    Or8Way(in=p2, out=orout2);
+    Or(a=orout1, b=orout2, out=orout3);
 
-    // if (or_out3 == 0) set zr = 1, else zr = 0
-    Mux(a=true, b=false, sel=or_out3, out=zr);
+    // if (orout3 == 0) set zr = 1, else zr = 0
+    Mux(a=true, b=false, sel=orout3, out=zr);
     // -------------------------------------------------------------------------    
 
     // # ng

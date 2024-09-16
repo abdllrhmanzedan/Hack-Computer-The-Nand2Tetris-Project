@@ -1,16 +1,12 @@
-/*
-Program: fill.asm
-Description: Fills the entire screen with black (sets all pixels to 1) once any key is pressed.
-Usage: Press any key on the keyboard, and the screen will turn black.
-*/
+// Program: fill.asm
+// Description: Fills the entire screen with black (sets all pixels to 1) once any key is pressed.
+// Usage: Press any key on the keyboard, and the screen will turn black.
 
 (LOOP)
-    /*
-        if (!NOT_PRESSED)
-            val=0 (don't change)
-        else
-            val=-1
-    */
+    // if (!NOT_PRESSED)
+    //    val=0 (don't change)
+    // else
+    //    val=-1
     @val
     M=0
 
@@ -32,7 +28,7 @@ Usage: Press any key on the keyboard, and the screen will turn black.
 (DRAW_LOOP)
     // SCREEN_END = KBD-1
     @KBD
-    D=M
+    D=A
     @address
     D=D-M
     @END
