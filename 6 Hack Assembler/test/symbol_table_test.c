@@ -9,7 +9,7 @@
 
 SymbolTable *constructorTest(char *test_name) {
     bool passed = true;
-    SymbolTable *st = SymbolTableConstructor(10);
+    SymbolTable *st = newSymbolTable(10);
 
     // check the table has the right values
     passed &= (st->capacity == 10 && st->count == 0);
@@ -31,7 +31,7 @@ SymbolTable *constructorTest(char *test_name) {
 
 void destructorTest(char *test_name, SymbolTable *st) {
     bool passed = true;
-    SymbolTableDestructor(&st);
+    deleteSymbolTable(&st);
 
     // check the table has the right values
     passed &= (st->capacity == 0 && st->count == 0);
@@ -54,7 +54,7 @@ void destructorTest(char *test_name, SymbolTable *st) {
 
 void insertTest(char *test_name) {
     bool passed = true;
-    SymbolTable *st = SymbolTableConstructor(5);
+    SymbolTable *st = newSymbolTable(5);
     st->insert(st, "instruction 1", 1);
     passed &= (st->count == 1);
 
@@ -80,7 +80,7 @@ void insertTest(char *test_name) {
 
 void getTest(char *test_name) {
     bool passed = true;
-    SymbolTable *st = SymbolTableConstructor(5);
+    SymbolTable *st = newSymbolTable(5);
     st->insert(st, "instruction 1", 1);
     passed &= (st->get(st, "instruction 1") == 1);
 
@@ -109,7 +109,7 @@ void getTest(char *test_name) {
 
 void expandTest(char *test_name) {
     bool passed = true;
-    SymbolTable *st = SymbolTableConstructor(3);
+    SymbolTable *st = newSymbolTable(3);
     passed &= (st->capacity == 3);
 
     // filling the table
@@ -147,16 +147,16 @@ void expandTest(char *test_name) {
 
 void reinitializeTest(char *test_name) {
     bool passed = true;
-    SymbolTable *st = SymbolTableConstructor(3);
+    SymbolTable *st = newSymbolTable(3);
 
     st->insert(st, "instruction 1", 1);
     st->insert(st, "instruction 2", 2);
     st->insert(st, "instruction 3", 3);
 
-    SymbolTableDestructor(&st);
+    deleteSymbolTable(&st);
     free(st);
 
-    st = SymbolTableConstructor(3);
+    st = newSymbolTable(3);
     passed &= (st->capacity == 3 && st->count == 0);
 
     // checking insertion/ retrieval after reinitialize
@@ -186,7 +186,7 @@ void reinitializeTest(char *test_name) {
     destructorTest("Destructor after reinitialize", st);
 }
 
-void SYMBOL_TABLE_SUIT_CASE() {
+void SYMBOL_TABLE_TEST_SUITE() {
     TEST_SUITE_START("Symbol Table");
 
     SymbolTable *st = constructorTest("Constructor");
@@ -201,6 +201,6 @@ void SYMBOL_TABLE_SUIT_CASE() {
 }
 int main(int argc, char const *argv[])
 {
-    SYMBOL_TABLE_SUIT_CASE();
+    SYMBOL_TABLE_TEST_SUITE();
     return 0;
 }

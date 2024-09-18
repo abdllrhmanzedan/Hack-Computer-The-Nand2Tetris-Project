@@ -33,7 +33,7 @@ void testTemplate(char *test_name) {
     else
         TEST_FAIL(test_name);
 }
-void TEMPLATE_SUIT_CASE() {
+void TEMPLATE_TEST_SUIT() {
     TEST_SUITE_START("X");
 
     TEST_SUITE_SUCCESS("X");

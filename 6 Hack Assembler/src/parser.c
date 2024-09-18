@@ -2,6 +2,7 @@
 #define _PARSER_H
 
 #include <stdbool.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -13,8 +14,8 @@ struct Parser {
     // fields
 
     // function pointers
-    char *(*filePath)(char *);
-
+    char *(*targetFile)(char *);
+    char *(*getInstruction)(char *);
     Type (*type)(char *);
 
     // handling A-instruction
@@ -22,54 +23,55 @@ struct Parser {
     char *(*label)(char *);
 
     // handling C-instruction
-    char *(*dest)(char *);
-    char *(*comp)(char *);
-    char *(*jump)(char *);
+    char *(*dest)(Parser *, char *);
+    char *(*comp)(Parser *, char *);
+    char *(*jump)(Parser *, char *);
 };
 
-char *filePath(char *path) {
-    // returned path = beginning to last_slash + (last_slash + 1) to dot + .hack
-    char *ret = (char *)malloc(sizeof(char) * (strlen(path) + 10));
-    memset(ret, 0, strlen(path) + 10);
+char *targetFile(char *path) {
+    // returned path = beginning to . + ".hack"
+    char *ret = (char *)malloc(strlen(path) + 5);
+    memset(ret, 0, strlen(path) + 5);
 
-    // first part
-    char *last_slash = strrchr(path, '/');
-    char *part1 = "";  // if no slash exist, file in same directory. part1=empty
-
-    if (last_slash != NULL) {
-        part1 = (char *)malloc(sizeof(char) * strlen(path));
-        memset(part1, 0, strlen(path));
-
-        // beginning to last_slash
-        strncpy(part1, path, last_slash - path + 1);
-    }
-
-    // second part
     char *dot = strrchr(path, '.');
-    char *part2 = path;  // if no dot exist, file is just a name. part2=path
+    if (dot == NULL) {
+        strcpy(ret, path);
+    } else {
+        strncpy(ret, path, dot - path);
+    }
+    strcat(ret, ".hack");
+    return ret;
+}
 
-    if (dot != NULL) {
-        part2 = (char *)malloc(sizeof(char) * strlen(path));
-        memset(part2, 0, strlen(path));
+/// @brief removes spaces from a given string
+/// @param line to be cleared from spaces
+static void removeSpaces(char *line) {
+    int idx = 0;
+    for (int i = 0; i < strlen(line); i++) {
+        if (line[i] != ' ') line[idx++] = line[i];
+    }
+    line[idx] = '\0';
+}
 
-        if (last_slash != NULL) {
-            // (last_slash + 1) to dot
-            strncpy(part2, last_slash + 1, dot - last_slash - 1);
-        } else {
-            // "xxx.asm" path to dot
-            strncpy(part2, path, dot - path);
+/// @brief extract the instruction from a line
+/// @param line to get the instruction from
+/// @return instruction
+char *getInstruction(char *line) {
+    removeSpaces(line);
+    char *ret = strdup(line);
+    bool comment = 0;
+    for (int i = 0; i < strlen(ret); i++) {
+        // start of the comment
+        if (comment || ret[i] == '/' || ret[i] == '\n') {
+            ret[i] = '\0';
+            comment = 1;
         }
     }
-
-    strcat(ret, part1);
-    strcat(ret, part2);
-    strcat(ret, ".hack");
-
     return ret;
 }
 
 Type type(char *inst) {
-    Type ret = C;
+    Type ret = ERROR;
     if (inst[0] == '@') {
         // A_VAL or A_VAR
         ret = A_VAL;
@@ -82,6 +84,10 @@ Type type(char *inst) {
         ret = SINGLE_COMMENT;
     } else if (inst[0] == '(') {
         ret = LABEL;
+    } else if (inst[0] == '0' || inst[0] == '1' ||
+               (inst[0] == '-' && inst[1] == '1') || inst[0] == 'A' ||
+               inst[0] == 'D' || inst[0] == 'M') {
+        ret = C;
     }
     return ret;
 }
@@ -89,16 +95,31 @@ Type type(char *inst) {
 int value(char *inst) {
     if (type(inst) != A_VAL) return atoi(INVALID);
 
+    int val = atoi(strdup(inst + 1));
+    if (val < 0 || val > MAX_NUMERIC_VALUE) return atoi(INVALID);
+
     return atoi(strdup(inst + 1));  // +1 to ignore '@'
 }
 
 char *label(char *inst) {
-    if (type(inst) != A_VAR) return INVALID;
+    if (type(inst) != LABEL && type(inst) != A_VAR) {
+        printf("%s \n", inst);
+        return INVALID;
+    }
+    char *ret = (char *)malloc(strlen(inst));
+    memset(ret, 0, strlen(inst));
 
-    return strdup(inst + 1);  // +1 to ignore '@'
+    // +1 to ignore ( and to, len-1 to ignore )
+    if (type(inst) == LABEL) {
+        strncpy(ret, inst + 1, strlen(inst) - 2);
+    } else {
+        strcpy(ret, inst + 1);
+    }
+
+    return ret;
 }
 
-char *dest(char *inst) {
+static char *destP(Parser *this, char *inst) {
     if (type(inst) != C) return INVALID;
 
     // destination exist iff there is '='
@@ -112,7 +133,7 @@ char *dest(char *inst) {
 
     return ret;
 }
-char *comp(char *inst) {
+static char *compP(Parser *this, char *inst) {
     if (type(inst) != C) return INVALID;
 
     char *ret = (char *)malloc(sizeof(char) * FIELD_LENGTH);
@@ -140,7 +161,7 @@ char *comp(char *inst) {
     }
 
     if (semi == NULL) {
-        // case3 3: dest=comp
+        // case  3: dest=comp
         strcpy(ret, equal + 1);
     } else {
         // case 4: dest=comp;jmp
@@ -148,7 +169,7 @@ char *comp(char *inst) {
     }
     return ret;
 }
-char *jump(char *inst) {
+static char *jumpP(Parser *this, char *inst) {
     if (type(inst) != C) return INVALID;
 
     // jump exist iff there is ';'
@@ -159,33 +180,37 @@ char *jump(char *inst) {
     return strdup(semi + 1);
 }
 
-Parser *ParserConstructor() {
+Parser *newParser() {
     Parser *instance = (Parser *)malloc(sizeof(Parser));
 
     // Initialize function pointers
-    instance->filePath = &filePath;
+    instance->targetFile = &targetFile;
+    instance->getInstruction = &getInstruction;
     instance->type = &type;
     instance->value = &value;
     instance->label = &label;
-    instance->dest = &dest;
-    instance->comp = &comp;
-    instance->jump = &jump;
+    instance->dest = &destP;
+    instance->comp = &compP;
+    instance->jump = &jumpP;
 
     return instance;
 }
 
-void ParserDestructor(Parser *this) {
+void deleteParser(Parser **this) {
+    Parser *parser = *this;
+
     // free function pointers
-    this->filePath = NULL;
-    this->type = NULL;
-    this->value = NULL;
-    this->label = NULL;
-    this->dest = NULL;
-    this->comp = NULL;
-    this->jump = NULL;
+    parser->targetFile = NULL;
+    parser->type = NULL;
+    parser->value = NULL;
+    parser->label = NULL;
+    parser->dest = NULL;
+    parser->comp = NULL;
+    parser->jump = NULL;
 
     // TODO: uncomment this after unit testing
-    // free(this)
+    free(*this);
+    *this = NULL;
 }
 
 #endif

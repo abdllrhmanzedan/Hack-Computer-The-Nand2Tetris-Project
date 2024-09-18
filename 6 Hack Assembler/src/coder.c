@@ -21,9 +21,9 @@ struct Coder {
     char* (*convertA)(int);
 
     // coding C-instruction
-    char* (*dest)(char*);
+    char* (*dest)(Coder*, char*);
     char* (*comp)(Coder*, char*);
-    char* (*jump)(char*);
+    char* (*jump)(Coder*, char*);
     char* (*convertC)(Coder*, char*, char*, char*);
 };
 
@@ -51,7 +51,7 @@ char* convertA(int address) {
     return ret;
 }
 
-static char* dest(char* dest_field) {
+static char* dest(Coder* this, char* dest_field) {
     char* ret = (char*)malloc(DEST_LENGTH + 1);
     for (int i = 0; i < DEST_LENGTH; i++) ret[i] = '0';
 
@@ -68,7 +68,7 @@ static char* comp(Coder* this, char* comp_field) {
     char* ret = (char*)malloc(COMP_LENGTH + 1);
     for (int i = 0; i < COMP_LENGTH; i++) ret[i] = '0';
 
-    char *cur = strdup(comp_field);
+    char* cur = strdup(comp_field);
 
     // replace A, M with X as they differ only bey bit-a
     bool a = 0;  // A
@@ -96,7 +96,7 @@ static char* comp(Coder* this, char* comp_field) {
     return ret;
 }
 
-static char* jump(char* jump_field) {
+static char* jump(Coder* this, char* jump_field) {
     char* ret = (char*)malloc(JUMP_LENGTH + 1);
     char val = '0';
     if (strcmp(jump_field, "JMP") == 0) val = '1';
@@ -122,40 +122,19 @@ char* convertC(Coder* this, char* dest_field, char* comp_field,
     // "111" + comp + dest + jump -> 3 + 7 + 3 + 2 = 16-bit
     strcat(ret, "111");
     strcat(ret, comp(this, comp_field));
-    strcat(ret, dest(dest_field));
-    strcat(ret, jump(jump_field));
+    strcat(ret, dest(this, dest_field));
+    strcat(ret, jump(this, jump_field));
 
     ret[INSTRUCTION_LENGTH] = '\0';
     return ret;
 }
-void initializeTable(Coder* this) {
-    // replace A, M with X as they differ only bey bit-a
-    // converting the binary to decimal to reuse the symbol table
-    this->table->insert(this->table, "0", 42);
-    this->table->insert(this->table, "1", 63);
-    this->table->insert(this->table, "-1", 58);
-    this->table->insert(this->table, "D", 12);
-    this->table->insert(this->table, "X", 48);
-    this->table->insert(this->table, "!D", 13);
-    this->table->insert(this->table, "!X", 49);
-    this->table->insert(this->table, "-D", 15);
-    this->table->insert(this->table, "-X", 51);
-    this->table->insert(this->table, "D+1", 31);
-    this->table->insert(this->table, "X+1", 55);
-    this->table->insert(this->table, "D-1", 14);
-    this->table->insert(this->table, "X-1", 50);
-    this->table->insert(this->table, "D+X", 2);
-    this->table->insert(this->table, "D-X", 19);
-    this->table->insert(this->table, "X-D", 7);
-    this->table->insert(this->table, "D&X", 0);
-    this->table->insert(this->table, "D|X", 21);
-}
-Coder* CodeConstructor() {
+
+Coder* newCoder() {
     Coder* instance = (Coder*)malloc(sizeof(Coder));
 
     // initialize fields
-    instance->table = SymbolTableConstructor(20);
-    initializeTable(instance);
+    instance->table = newSymbolTable(20);
+    instance->table->addCompSymbols(instance->table);
 
     // Initialize function pointers
     instance->convertA = &convertA;
@@ -165,19 +144,21 @@ Coder* CodeConstructor() {
     instance->convertC = *convertC;
 }
 
-void CodeDestructor(Coder* this) {
+void deleteCoder(Coder** this) {
+    Coder* table = *this;
     // free fields
-    SymbolTableDestructor(&this->table);
+    deleteSymbolTable(&table->table);
 
     // free function pointers
-    this->convertA = NULL;
-    this->dest = NULL;
-    this->comp = NULL;
-    this->jump = NULL;
-    this->convertC = NULL;
+    table->convertA = NULL;
+    table->dest = NULL;
+    table->comp = NULL;
+    table->jump = NULL;
+    table->convertC = NULL;
 
     // TODO: uncomment this after unit testing
-    // free(this)
+    free(*this);
+    *this = NULL;
 }
 
 #endif

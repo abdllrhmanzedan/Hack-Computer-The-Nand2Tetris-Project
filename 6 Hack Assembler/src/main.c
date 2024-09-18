@@ -1,16 +1,27 @@
-#include <stdio.h>
-#include <string.h>
+#include <dirent.h>
 
-void ffff(char** x) {
-    (*x)[0] = '1';  // Dereference the pointer correctly to modify the string.
-}
+#include "hack_assembler.c"
 
-int main(int argc, char const* argv[]) {
-    char* m = strdup("wtfff");  // Use a character array to allow modification.
-    
-    printf("%s\n", m);   // Print before modification.
-    ffff(&m);
-    printf("%s\n", m);   // Print after modification.
+int main() {
+    DIR* input_dir = opendir("../input");
+    struct dirent* file;
+    if (input_dir == NULL) {
+        printf("Unable to open input directory ::main()");
+        return 0;
+    }
 
+    HackAssembler* assembler = newHackAssembler();
+    while (file = readdir(input_dir)) {
+        if (strcmp(file->d_name, ".") == 0 || strcmp(file->d_name, "..") == 0)
+            continue;
+        char* asm_file = strdup("../input/");
+        strcat(asm_file, file->d_name);
+        
+        // assembling to .hack
+        assembler->assemble(assembler, asm_file);
+    }
+    closedir(input_dir);
+    file = NULL;
+    input_dir = NULL;
     return 0;
 }

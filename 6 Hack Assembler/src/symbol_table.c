@@ -28,6 +28,8 @@ struct SymbolTable {
     // function pointers
     void (*insert)(SymbolTable *, char *, int);
     int (*get)(SymbolTable *, char *);
+    void (*addCompSymbols)(SymbolTable *);
+    void (*addPredefined)(SymbolTable *);
 };
 
 /// @brief initializing entries to NULL to avoid dangling pointer
@@ -82,10 +84,62 @@ int get(SymbolTable *this, char *symbol) {
     return -1;
 }
 
+/// @brief adds the C instruction comp field mapping
+/// @param this pointer to SymbolTable instance
+void addCompSymbols(SymbolTable *this) {
+    // replace A, M with X as they differ only bey bit-a
+    // converting the binary to decimal to reuse the symbol table
+    this->insert(this, "0", 42);
+    this->insert(this, "1", 63);
+    this->insert(this, "-1", 58);
+    this->insert(this, "D", 12);
+    this->insert(this, "X", 48);
+    this->insert(this, "!D", 13);
+    this->insert(this, "!X", 49);
+    this->insert(this, "-D", 15);
+    this->insert(this, "-X", 51);
+    this->insert(this, "D+1", 31);
+    this->insert(this, "X+1", 55);
+    this->insert(this, "D-1", 14);
+    this->insert(this, "X-1", 50);
+    this->insert(this, "D+X", 2);
+    this->insert(this, "D-X", 19);
+    this->insert(this, "X-D", 7);
+    this->insert(this, "D&X", 0);
+    this->insert(this, "D|X", 21);
+}
+
+void addPredefined(SymbolTable *this) {
+    this->insert(this, "R0", 0);
+    this->insert(this, "R1", 1);
+    this->insert(this, "R2", 2);
+    this->insert(this, "R3", 3);
+    this->insert(this, "R4", 4);
+    this->insert(this, "R5", 5);
+    this->insert(this, "R6", 6);
+    this->insert(this, "R7", 7);
+    this->insert(this, "R8", 8);
+    this->insert(this, "R9", 9);
+    this->insert(this, "R10", 10);
+    this->insert(this, "R11", 11);
+    this->insert(this, "R12", 12);
+    this->insert(this, "R13", 13);
+    this->insert(this, "R14", 14);
+    this->insert(this, "R15", 15);
+
+    this->insert(this, "SCREEN", 16384);
+    this->insert(this, "KBD", 24576);
+    this->insert(this, "SP", 0);
+    this->insert(this, "LCL", 1);
+    this->insert(this, "ARG", 2);
+    this->insert(this, "THIS", 3);
+    this->insert(this, "THAT", 4);
+}
+
 /// @brief creates SymbolTable instance and initializes it
 /// @param capacity the initial capacity
 /// @return pointer to an instance of SymbolTable
-SymbolTable *SymbolTableConstructor(int capacity) {
+SymbolTable *newSymbolTable(int capacity) {
     // to avoid wrong values
     if (capacity <= 0) capacity = 1;
 
@@ -100,11 +154,15 @@ SymbolTable *SymbolTableConstructor(int capacity) {
     // Initialize function pointers
     instance->insert = &insert;
     instance->get = &get;
+    instance->addCompSymbols = &addCompSymbols;
+    instance->addPredefined = &addPredefined;
 
     return instance;
 }
 
-void SymbolTableDestructor(SymbolTable **this) {
+/// @brief deallocates memory of this
+/// @param this pointer to SymbolTable instance pointer
+void deleteSymbolTable(SymbolTable **this) {
     // free each symbol (string) in the table
     SymbolTable *table = *this;
 

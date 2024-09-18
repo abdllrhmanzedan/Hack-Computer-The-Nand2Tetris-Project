@@ -15,7 +15,7 @@ typedef enum Type {
     C,
     LABEL,
     SINGLE_COMMENT,
-    MULTI_COMMENT
+    ERROR
 } Type;
 
 #endif

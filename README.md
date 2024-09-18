@@ -15,7 +15,7 @@ Here’s what I’ve Done so far in the project (in-time progress):
 5 - [x] **CPU and Architecture**: Combined all components to build a functional CPU and computer architecture.
 
 ## From Hack to Tetris: Hack-Computer Software
-6 - [ ] **p6**:
+6 - [x] **Hack-Assembler**: Building an Assembler that has the ability to convert Hack-Assembly-Language into Hack-Machine-Language that can be run on a Hack-CPU.
 7 - [ ] **p7**:
 8 - [ ] **p8**:
 9 - [ ] **p9**:

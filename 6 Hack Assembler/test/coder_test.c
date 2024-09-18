@@ -9,7 +9,7 @@
 
 Coder* constructorTest(char* test_name) {
     bool passed = true;
-    Coder* coder = CodeConstructor();
+    Coder* coder = newCoder();
 
     // check if the table is constructed
     passed &= (coder->table != NULL);
@@ -28,7 +28,7 @@ Coder* constructorTest(char* test_name) {
 }
 void destructorTest(char* test_name, Coder* coder) {
     bool passed = true;
-    CodeDestructor(coder);
+    deleteCoder(&coder);
 
     // check table is destructed
     passed &= (coder->table == NULL);
@@ -43,12 +43,10 @@ void destructorTest(char* test_name, Coder* coder) {
         TEST_PASS(test_name);
     else
         TEST_FAIL(test_name);
-    free(coder);
-    coder = NULL;
 }
 void convertATest(char* test_name) {
     bool passed = true;
-    Coder* coder = CodeConstructor();
+    Coder* coder = newCoder();
 
     // check normal use
     passed &= (strcmp(coder->convertA(0), "0000000000000000") == 0);
@@ -78,17 +76,17 @@ void convertATest(char* test_name) {
 
 void destTest(char* test_name) {
     bool passed = true;
-    Coder* coder = CodeConstructor();
+    Coder* coder = newCoder();
 
     // check handling null, A, D, M, AD, AM, DM, ADM
-    passed &= (strcmp(coder->dest(INVALID), "000") == 0);
-    passed &= (strcmp(coder->dest("A"), "100") == 0);
-    passed &= (strcmp(coder->dest("D"), "010") == 0);
-    passed &= (strcmp(coder->dest("M"), "001") == 0);
-    passed &= (strcmp(coder->dest("AD"), "110") == 0);
-    passed &= (strcmp(coder->dest("AM"), "101") == 0);
-    passed &= (strcmp(coder->dest("MD"), "011") == 0);
-    passed &= (strcmp(coder->dest("ADM"), "111") == 0);
+    passed &= (strcmp(coder->dest(coder, INVALID), "000") == 0);
+    passed &= (strcmp(coder->dest(coder, "A"), "100") == 0);
+    passed &= (strcmp(coder->dest(coder, "D"), "010") == 0);
+    passed &= (strcmp(coder->dest(coder, "M"), "001") == 0);
+    passed &= (strcmp(coder->dest(coder, "AD"), "110") == 0);
+    passed &= (strcmp(coder->dest(coder, "AM"), "101") == 0);
+    passed &= (strcmp(coder->dest(coder, "MD"), "011") == 0);
+    passed &= (strcmp(coder->dest(coder, "ADM"), "111") == 0);
 
     if (passed)
         TEST_PASS(test_name);
@@ -99,7 +97,7 @@ void destTest(char* test_name) {
 }
 void compTest(char* test_name) {
     bool passed = true;
-    Coder* coder = CodeConstructor();
+    Coder* coder = newCoder();
 
     // check the table values
     passed &= (strcmp(coder->comp(coder, "0"), "0101010") == 0);
@@ -153,20 +151,20 @@ void compTest(char* test_name) {
 
 void jumpTest(char* test_name) {
     bool passed = true;
-    Coder* coder = CodeConstructor();
+    Coder* coder = newCoder();
 
     // check handling null, A, JGT, JEQ, JGE, JLT, JNE, JLE
-    passed &= (strcmp(coder->jump(INVALID), "000") == 0);
-    passed &= (strcmp(coder->jump("JGT"), "001") == 0);
-    passed &= (strcmp(coder->jump("JEQ"), "010") == 0);
-    passed &= (strcmp(coder->jump("JGE"), "011") == 0);
-    passed &= (strcmp(coder->jump("JLT"), "100") == 0);
-    passed &= (strcmp(coder->jump("JNE"), "101") == 0);
-    passed &= (strcmp(coder->jump("JLE"), "110") == 0);
-    passed &= (strcmp(coder->jump("JMP"), "111") == 0);
+    passed &= (strcmp(coder->jump(coder, INVALID), "000") == 0);
+    passed &= (strcmp(coder->jump(coder, "JGT"), "001") == 0);
+    passed &= (strcmp(coder->jump(coder, "JEQ"), "010") == 0);
+    passed &= (strcmp(coder->jump(coder, "JGE"), "011") == 0);
+    passed &= (strcmp(coder->jump(coder, "JLT"), "100") == 0);
+    passed &= (strcmp(coder->jump(coder, "JNE"), "101") == 0);
+    passed &= (strcmp(coder->jump(coder, "JLE"), "110") == 0);
+    passed &= (strcmp(coder->jump(coder, "JMP"), "111") == 0);
 
     // check invalid calls
-    passed &= (strcmp(coder->jump("JO"), "000") == 0);
+    passed &= (strcmp(coder->jump(coder, "JO"), "000") == 0);
 
     if (passed)
         TEST_PASS(test_name);
@@ -177,17 +175,52 @@ void jumpTest(char* test_name) {
 
 void convertCTest(char* test_name) {
     bool passed = true;
-    Coder* coder = CodeConstructor();
+    Coder* coder = newCoder();
 
-    // check handling: comp (covered in compTest), dest=comp, comp;jmp,
-    // dest=comp;jmp
+    // check handling: dest=comp, comp;jmp, dest=comp;jmp
+    // comp (covered in compTest)
 
+    // dest=comp
+    // D=A
+    passed &= (strcmp(coder->convertC(coder, "D", "A", INVALID),
+                      "1110110000010000") == 0);
+    // D=M
+    passed &= (strcmp(coder->convertC(coder, "D", "M", INVALID),
+                      "1111110000010000") == 0);
+    // MD=A
+    passed &= (strcmp(coder->convertC(coder, "MD", "A", INVALID),
+                      "1110110000011000") == 0);
+    // ADM=A+1
+    passed &= (strcmp(coder->convertC(coder, "ADM", "A+1", INVALID),
+                      "1110110111111000") == 0);
+
+    // comp;jmp
     // 0;jmp
     passed &= (strcmp(coder->convertC(coder, INVALID, "0", "JMP"),
                       "1110101010000111") == 0);
     // 1;jmp
     passed &= (strcmp(coder->convertC(coder, INVALID, "1", "JMP"),
                       "1110111111000111") == 0);
+    // D;JNE
+    passed &= (strcmp(coder->convertC(coder, INVALID, "D", "JNE"),
+                      "1110001100000101") == 0);
+    // M;JMP
+    passed &= (strcmp(coder->convertC(coder, INVALID, "M", "JGT"),
+                      "1111110000000001") == 0);
+
+    // dest=comp;jmp
+    // D=D-1;JLT
+    passed &= (strcmp(coder->convertC(coder, "D", "D-1", "JLT"),
+                      "1110001110010100") == 0);
+    // M=M-D;JLE
+    passed &= (strcmp(coder->convertC(coder, "M", "M-D", "JLE"),
+                      "1111000111001110") == 0);
+    // MD=M|D;JGT
+    passed &= (strcmp(coder->convertC(coder, "MD", "D|M", "JGT"),
+                      "1111010101011001") == 0);
+    // ADM=0;JMP
+    passed &= (strcmp(coder->convertC(coder, "ADM", "0", "JMP"),
+                      "1110101010111111") == 0);
 
     if (passed)
         TEST_PASS(test_name);
@@ -195,7 +228,7 @@ void convertCTest(char* test_name) {
         TEST_FAIL(test_name);
     destructorTest("Destructor after convert C instruction", coder);
 }
-void CODER_SUIT_CASE() {
+void CODER_TEST_SUITE() {
     TEST_SUITE_START("Coder");
 
     Coder* coder = constructorTest("Constructor");
@@ -210,6 +243,6 @@ void CODER_SUIT_CASE() {
 }
 
 int main(int argc, char const* argv[]) {
-    CODER_SUIT_CASE();
+    CODER_TEST_SUITE();
     return 0;
 }
