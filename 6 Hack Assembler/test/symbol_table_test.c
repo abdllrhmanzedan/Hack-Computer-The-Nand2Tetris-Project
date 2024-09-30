@@ -7,7 +7,8 @@
 // note: remember to free your instances!
 // note: when testing comment the free/NULL in destructor!
 
-SymbolTable *constructorTest(char *test_name) {
+SymbolTable *constructorTest(char *test_name)
+{
     bool passed = true;
     SymbolTable *st = newSymbolTable(10);
 
@@ -29,7 +30,8 @@ SymbolTable *constructorTest(char *test_name) {
     return st;
 }
 
-void destructorTest(char *test_name, SymbolTable *st) {
+void destructorTest(char *test_name, SymbolTable *st)
+{
     bool passed = true;
     deleteSymbolTable(&st);
 
@@ -52,7 +54,8 @@ void destructorTest(char *test_name, SymbolTable *st) {
     free(st);
 }
 
-void insertTest(char *test_name) {
+void insertTest(char *test_name)
+{
     bool passed = true;
     SymbolTable *st = newSymbolTable(5);
     st->insert(st, "instruction 1", 1);
@@ -78,7 +81,8 @@ void insertTest(char *test_name) {
     destructorTest("Destructor after insertion", st);
 }
 
-void getTest(char *test_name) {
+void getTest(char *test_name)
+{
     bool passed = true;
     SymbolTable *st = newSymbolTable(5);
     st->insert(st, "instruction 1", 1);
@@ -107,7 +111,8 @@ void getTest(char *test_name) {
     destructorTest("Destructor after insertion and retrieval", st);
 }
 
-void expandTest(char *test_name) {
+void expandTest(char *test_name)
+{
     bool passed = true;
     SymbolTable *st = newSymbolTable(3);
     passed &= (st->capacity == 3);
@@ -145,7 +150,8 @@ void expandTest(char *test_name) {
     destructorTest("Destructor after expand", st);
 }
 
-void reinitializeTest(char *test_name) {
+void reinitializeTest(char *test_name)
+{
     bool passed = true;
     SymbolTable *st = newSymbolTable(3);
 
@@ -186,7 +192,8 @@ void reinitializeTest(char *test_name) {
     destructorTest("Destructor after reinitialize", st);
 }
 
-void SYMBOL_TABLE_TEST_SUITE() {
+void SYMBOL_TABLE_TEST_SUITE()
+{
     TEST_SUITE_START("Symbol Table");
 
     SymbolTable *st = constructorTest("Constructor");

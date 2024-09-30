@@ -8,7 +8,8 @@
 typedef struct HackAssembler HackAssembler;
 
 /// @brief responsible for converting .asm file to .hack
-struct HackAssembler {
+struct HackAssembler
+{
     // fields
     char *file_name;
     Coder *coder;
@@ -21,9 +22,11 @@ struct HackAssembler {
 
 /// @brief reads .asm file and add the (LABELS) to the symbol table
 /// @param this pointer to HackAssembler instance
-static void firstPass(HackAssembler *this) {
+static void firstPass(HackAssembler *this)
+{
     FILE *file = fopen(this->file_name, "r");
-    if (file == NULL) {
+    if (file == NULL)
+    {
         printf("Cannot open the file HackAssembler::firstPass()\n");
         return;
     }
@@ -32,14 +35,18 @@ static void firstPass(HackAssembler *this) {
     memset(line, 0, sizeof(line));
 
     int inst_num = 0;
-    while (fgets(line, sizeof(line), file)) {
+    while (fgets(line, sizeof(line), file))
+    {
         char *inst = this->parser->getInstruction(line);
 
         Type inst_type = this->parser->type(line);
-        if (inst_type == ERROR) continue;
-        if (inst_type != LABEL) {
+        if (inst_type == ERROR)
+            continue;
+        if (inst_type != LABEL)
+        {
             // add all previous (LABELS, line_num)
-            if (inst_type != SINGLE_COMMENT) {
+            if (inst_type != SINGLE_COMMENT)
+            {
                 inst_num++;
             }
             free(inst);
@@ -60,10 +67,12 @@ static void firstPass(HackAssembler *this) {
 
 /// @brief reads .asm file and convert it to .hack file
 /// @param this pointer to HackAssembler instance
-static void secondPass(HackAssembler *this) {
+static void secondPass(HackAssembler *this)
+{
     FILE *file = fopen(this->file_name, "r");
     FILE *outf = fopen(this->parser->targetFile(this->file_name), "w");
-    if (file == NULL || outf == NULL) {
+    if (file == NULL || outf == NULL)
+    {
         printf("Cannot open the file HackAssembler::secondPass()\n");
         return;
     }
@@ -73,29 +82,34 @@ static void secondPass(HackAssembler *this) {
 
     int inst_num = 0;
     int cur_address = 16;
-    while (fgets(line, sizeof(line), file)) {
+    while (fgets(line, sizeof(line), file))
+    {
         char *inst = this->parser->getInstruction(line);
 
         Type inst_type = this->parser->type(inst);
         if (inst_type == LABEL || inst_type == SINGLE_COMMENT ||
             inst_type == ERROR)
             continue;
-        if (inst_type == A_VAL || inst_type == A_VAR) {
+        if (inst_type == A_VAL || inst_type == A_VAR)
+        {
             // if it's A_VAL, will get the value direct, if it =-1
             // @123, val = 123
             int val = this->parser->value(inst);
-            if (inst_type == A_VAR) {
+            if (inst_type == A_VAR)
+            {
                 char *label = this->parser->label(inst);
                 // label: could be LABEL or new variable
                 int added = this->table->get(this->table, label);
 
                 // not added in first pass: (new variable)
                 // add it, then use its value
-                if (added == -1) {
+                if (added == -1)
+                {
                     val = cur_address;
                     this->table->insert(this->table, label, cur_address);
-                    cur_address++;  // move to next available one
-                } else
+                    cur_address++; // move to next available one
+                }
+                else
                     val = added;
 
                 // deallocate memory
@@ -107,7 +121,9 @@ static void secondPass(HackAssembler *this) {
             fputs(machine_code, outf);
             fputs("\n", outf);
             free(machine_code);
-        } else {
+        }
+        else
+        {
             char *d = this->parser->dest(this->parser, inst);
             char *c = this->parser->comp(this->parser, inst);
             char *j = this->parser->jump(this->parser, inst);
@@ -129,7 +145,8 @@ static void secondPass(HackAssembler *this) {
 /// @brief Converts file at path from .asm to .hack
 /// @param this pointer to HackAssembler instance
 /// @param path of the file to be assembled/ translated
-void assemble(HackAssembler *this, char *path) {
+void assemble(HackAssembler *this, char *path)
+{
     this->file_name = strdup(path);
 
     // clear old table content
@@ -145,7 +162,8 @@ void assemble(HackAssembler *this, char *path) {
 
 /// @brief creates new instance of HackAssembler
 /// @return pointer to an HackAssembler
-HackAssembler *newHackAssembler() {
+HackAssembler *newHackAssembler()
+{
     HackAssembler *instance = (HackAssembler *)malloc(sizeof(HackAssembler));
 
     // initialize fields
@@ -163,7 +181,8 @@ HackAssembler *newHackAssembler() {
 
 /// @brief deallocates memory of this
 /// @param this pointer to HackAssembler instance
-void deleteHackAssembler(HackAssembler **this) {
+void deleteHackAssembler(HackAssembler **this)
+{
     HackAssembler *assembler = *this;
 
     // free fields

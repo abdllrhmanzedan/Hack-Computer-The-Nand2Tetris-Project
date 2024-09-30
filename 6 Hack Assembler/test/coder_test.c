@@ -7,9 +7,10 @@
 // note: remember to free your instances!
 // note: when testing comment the free/NULL in destructor!
 
-Coder* constructorTest(char* test_name) {
+Coder *constructorTest(char *test_name)
+{
     bool passed = true;
-    Coder* coder = newCoder();
+    Coder *coder = newCoder();
 
     // check if the table is constructed
     passed &= (coder->table != NULL);
@@ -26,7 +27,8 @@ Coder* constructorTest(char* test_name) {
         TEST_FAIL(test_name);
     return coder;
 }
-void destructorTest(char* test_name, Coder* coder) {
+void destructorTest(char *test_name, Coder *coder)
+{
     bool passed = true;
     deleteCoder(&coder);
 
@@ -44,9 +46,10 @@ void destructorTest(char* test_name, Coder* coder) {
     else
         TEST_FAIL(test_name);
 }
-void convertATest(char* test_name) {
+void convertATest(char *test_name)
+{
     bool passed = true;
-    Coder* coder = newCoder();
+    Coder *coder = newCoder();
 
     // check normal use
     passed &= (strcmp(coder->convertA(0), "0000000000000000") == 0);
@@ -74,9 +77,10 @@ void convertATest(char* test_name) {
     destructorTest("Destructor after Convert A instruction", coder);
 }
 
-void destTest(char* test_name) {
+void destTest(char *test_name)
+{
     bool passed = true;
-    Coder* coder = newCoder();
+    Coder *coder = newCoder();
 
     // check handling null, A, D, M, AD, AM, DM, ADM
     passed &= (strcmp(coder->dest(coder, INVALID), "000") == 0);
@@ -95,9 +99,10 @@ void destTest(char* test_name) {
 
     destructorTest("Destructor after encoding dest field", coder);
 }
-void compTest(char* test_name) {
+void compTest(char *test_name)
+{
     bool passed = true;
-    Coder* coder = newCoder();
+    Coder *coder = newCoder();
 
     // check the table values
     passed &= (strcmp(coder->comp(coder, "0"), "0101010") == 0);
@@ -149,9 +154,10 @@ void compTest(char* test_name) {
     destructorTest("Destructor after encoding comp field", coder);
 }
 
-void jumpTest(char* test_name) {
+void jumpTest(char *test_name)
+{
     bool passed = true;
-    Coder* coder = newCoder();
+    Coder *coder = newCoder();
 
     // check handling null, A, JGT, JEQ, JGE, JLT, JNE, JLE
     passed &= (strcmp(coder->jump(coder, INVALID), "000") == 0);
@@ -173,9 +179,10 @@ void jumpTest(char* test_name) {
     destructorTest("Destructor after encoding jump field", coder);
 }
 
-void convertCTest(char* test_name) {
+void convertCTest(char *test_name)
+{
     bool passed = true;
-    Coder* coder = newCoder();
+    Coder *coder = newCoder();
 
     // check handling: dest=comp, comp;jmp, dest=comp;jmp
     // comp (covered in compTest)
@@ -228,10 +235,11 @@ void convertCTest(char* test_name) {
         TEST_FAIL(test_name);
     destructorTest("Destructor after convert C instruction", coder);
 }
-void CODER_TEST_SUITE() {
+void CODER_TEST_SUITE()
+{
     TEST_SUITE_START("Coder");
 
-    Coder* coder = constructorTest("Constructor");
+    Coder *coder = constructorTest("Constructor");
     destructorTest("Destructor", coder);
     convertATest("Convert A Instruction to Machine Code");
     destTest("Getting machine code of dest filed");
@@ -242,7 +250,8 @@ void CODER_TEST_SUITE() {
     TEST_SUITE_SUCCESS("Coder");
 }
 
-int main(int argc, char const* argv[]) {
+int main(int argc, char const *argv[])
+{
     CODER_TEST_SUITE();
     return 0;
 }

@@ -13,13 +13,15 @@ typedef struct SymbolTable SymbolTable;
 typedef struct TableEntry TableEntry;
 
 /// @brief pair of {symbol, address}
-struct TableEntry {
+struct TableEntry
+{
     char *symbol;
     int address;
 };
 
 /// @brief table contains entries of TableEntry
-struct SymbolTable {
+struct SymbolTable
+{
     // fields
     TableEntry *table;
     int capacity;
@@ -35,8 +37,10 @@ struct SymbolTable {
 /// @brief initializing entries to NULL to avoid dangling pointer
 /// @param this pointer to SymbolTable instance
 /// @param start
-void initializeEntries(SymbolTable *this, int start) {
-    for (int i = start; i < this->capacity; i++) {
+void initializeEntries(SymbolTable *this, int start)
+{
+    for (int i = start; i < this->capacity; i++)
+    {
         this->table[i].symbol = NULL;
         this->table[i].address = -1;
     }
@@ -44,13 +48,15 @@ void initializeEntries(SymbolTable *this, int start) {
 
 /// @brief expands the capacity of the table
 /// @param this pointer to SymbolTable instance
-void expand(SymbolTable *this) {
+void expand(SymbolTable *this)
+{
     int start = this->capacity;
     this->capacity *= 2;
     this->table =
         (TableEntry *)realloc(this->table, this->capacity * sizeof(TableEntry));
 
-    if (this->table == NULL) {
+    if (this->table == NULL)
+    {
         printf("Bad allocation in SymbolTable::expand(SymbolTable*)");
         assert(false);
     }
@@ -62,8 +68,10 @@ void expand(SymbolTable *this) {
 /// @param this pointer to SymbolTable instance
 /// @param symbol string represents label/variable name
 /// @param address instruction address in memory
-void insert(SymbolTable *this, char *symbol, int address) {
-    if (this->count == this->capacity) {
+void insert(SymbolTable *this, char *symbol, int address)
+{
+    if (this->count == this->capacity)
+    {
         expand(this);
     }
     int idx = this->count;
@@ -76,8 +84,10 @@ void insert(SymbolTable *this, char *symbol, int address) {
 /// @param this pointer to SymbolTable instance
 /// @param symbol string represents label/variable name
 /// @return -1 if not found, its address otherwise
-int get(SymbolTable *this, char *symbol) {
-    for (int i = 0; i < this->count; i++) {
+int get(SymbolTable *this, char *symbol)
+{
+    for (int i = 0; i < this->count; i++)
+    {
         if (strcmp(symbol, this->table[i].symbol) == 0)
             return this->table[i].address;
     }
@@ -86,7 +96,8 @@ int get(SymbolTable *this, char *symbol) {
 
 /// @brief adds the C instruction comp field mapping
 /// @param this pointer to SymbolTable instance
-void addCompSymbols(SymbolTable *this) {
+void addCompSymbols(SymbolTable *this)
+{
     // replace A, M with X as they differ only bey bit-a
     // converting the binary to decimal to reuse the symbol table
     this->insert(this, "0", 42);
@@ -109,7 +120,8 @@ void addCompSymbols(SymbolTable *this) {
     this->insert(this, "D|X", 21);
 }
 
-void addPredefined(SymbolTable *this) {
+void addPredefined(SymbolTable *this)
+{
     this->insert(this, "R0", 0);
     this->insert(this, "R1", 1);
     this->insert(this, "R2", 2);
@@ -139,9 +151,11 @@ void addPredefined(SymbolTable *this) {
 /// @brief creates SymbolTable instance and initializes it
 /// @param capacity the initial capacity
 /// @return pointer to an instance of SymbolTable
-SymbolTable *newSymbolTable(int capacity) {
+SymbolTable *newSymbolTable(int capacity)
+{
     // to avoid wrong values
-    if (capacity <= 0) capacity = 1;
+    if (capacity <= 0)
+        capacity = 1;
 
     // initialize fields
     SymbolTable *instance = (SymbolTable *)malloc(sizeof(SymbolTable));
@@ -162,12 +176,15 @@ SymbolTable *newSymbolTable(int capacity) {
 
 /// @brief deallocates memory of this
 /// @param this pointer to SymbolTable instance pointer
-void deleteSymbolTable(SymbolTable **this) {
+void deleteSymbolTable(SymbolTable **this)
+{
     // free each symbol (string) in the table
     SymbolTable *table = *this;
 
-    for (int i = 0; i < table->capacity; i++) {
-        if (table->table[i].symbol != NULL) free(table->table[i].symbol);
+    for (int i = 0; i < table->capacity; i++)
+    {
+        if (table->table[i].symbol != NULL)
+            free(table->table[i].symbol);
         table->table[i].symbol = NULL;
     }
     // setting values to zero

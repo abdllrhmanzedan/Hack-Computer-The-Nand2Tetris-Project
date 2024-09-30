@@ -9,7 +9,8 @@
 #define JUMP_LENGTH 3
 #define INVALID "-1"
 
-typedef enum Type {
+typedef enum Type
+{
     A_VAL,
     A_VAR,
     C,

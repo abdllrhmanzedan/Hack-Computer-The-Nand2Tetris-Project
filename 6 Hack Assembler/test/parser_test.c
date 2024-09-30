@@ -6,22 +6,36 @@
 
 // note: remember to free your instances!
 // note: when testing comment the free/NULL in deleteParser!
-bool validate(Parser *parser, char *op, char *in, char *ac) {
+bool validate(Parser *parser, char *op, char *in, char *ac)
+{
     char *test = strdup(in);
     bool passed = true;
-    if (strcmp(op, "path") == 0) {
+    if (strcmp(op, "path") == 0)
+    {
         passed &= (strcmp(parser->targetFile(test), ac) == 0);
-    } else if (strcmp(op, "inst") == 0) {
+    }
+    else if (strcmp(op, "inst") == 0)
+    {
         passed &= (strcmp(parser->getInstruction(test), ac) == 0);
-    } else if (strcmp(op, "value") == 0) {
+    }
+    else if (strcmp(op, "value") == 0)
+    {
         passed &= (parser->value(test) == atoi(ac));
-    } else if (strcmp(op, "label") == 0) {
+    }
+    else if (strcmp(op, "label") == 0)
+    {
         passed &= (strcmp(parser->label(test), ac) == 0);
-    } else if (strcmp(op, "dest") == 0) {
+    }
+    else if (strcmp(op, "dest") == 0)
+    {
         passed &= (strcmp(parser->dest(parser, test), ac) == 0);
-    } else if (strcmp(op, "comp") == 0) {
+    }
+    else if (strcmp(op, "comp") == 0)
+    {
         passed &= (strcmp(parser->comp(parser, test), ac) == 0);
-    } else if (strcmp(op, "jump") == 0) {
+    }
+    else if (strcmp(op, "jump") == 0)
+    {
         passed &= (strcmp(parser->jump(parser, test), ac) == 0);
     }
 
@@ -29,7 +43,8 @@ bool validate(Parser *parser, char *op, char *in, char *ac) {
     return passed;
 }
 
-Parser *constructorTest(char *test_name) {
+Parser *constructorTest(char *test_name)
+{
     bool passed = true;
     Parser *parser = newParser();
 
@@ -45,7 +60,8 @@ Parser *constructorTest(char *test_name) {
         TEST_FAIL(test_name);
     return parser;
 }
-void destructorTest(char *test_name, Parser *parser) {
+void destructorTest(char *test_name, Parser *parser)
+{
     bool passed = true;
     deleteParser(&parser);
 
@@ -60,7 +76,8 @@ void destructorTest(char *test_name, Parser *parser) {
     else
         TEST_FAIL(test_name);
 }
-void filePathTest(char *test_name) {
+void filePathTest(char *test_name)
+{
     bool passed = true;
     Parser *parser = newParser();
 
@@ -79,7 +96,8 @@ void filePathTest(char *test_name) {
     destructorTest("Destructor after getting target file path", parser);
 }
 
-void getInstructionTest(char *test_name) {
+void getInstructionTest(char *test_name)
+{
     bool passed = true;
     Parser *parser = newParser();
     char *test;
@@ -114,7 +132,8 @@ void getInstructionTest(char *test_name) {
     destructorTest("Destructor after getting instruction from a line", parser);
 }
 
-void typeTest(char *test_name) {
+void typeTest(char *test_name)
+{
     bool passed = true;
     Parser *parser = newParser();
 
@@ -136,7 +155,8 @@ void typeTest(char *test_name) {
     destructorTest("Destructor after getting type of an A instruction", parser);
 }
 
-void valueTest(char *test_name) {
+void valueTest(char *test_name)
+{
     bool passed = true;
     Parser *parser = newParser();
 
@@ -163,7 +183,8 @@ void valueTest(char *test_name) {
                    parser);
 }
 
-void labelTest(char *test_name) {
+void labelTest(char *test_name)
+{
     bool passed = true;
     Parser *parser = newParser();
 
@@ -183,7 +204,8 @@ void labelTest(char *test_name) {
     destructorTest("Destructor after getting label of an A instruction",
                    parser);
 }
-void destTest(char *test_name) {
+void destTest(char *test_name)
+{
     bool passed = true;
     Parser *parser = newParser();
 
@@ -211,7 +233,8 @@ void destTest(char *test_name) {
     destructorTest("Destructor after getting dest field of an instruction",
                    parser);
 }
-void compTest(char *test_name) {
+void compTest(char *test_name)
+{
     bool passed = true;
     Parser *parser = newParser();
 
@@ -245,7 +268,8 @@ void compTest(char *test_name) {
     destructorTest("Destructor after getting comp field of an C instruction",
                    parser);
 }
-void jumpTest(char *test_name) {
+void jumpTest(char *test_name)
+{
     bool passed = true;
     Parser *parser = newParser();
 
@@ -270,7 +294,8 @@ void jumpTest(char *test_name) {
     destructorTest("Destructor after getting jump field of an C instruction",
                    parser);
 }
-void PARSER_TEST_SUITE() {
+void PARSER_TEST_SUITE()
+{
     TEST_SUITE_START("Parser");
 
     Parser *parser = constructorTest("Constructor");
@@ -286,7 +311,8 @@ void PARSER_TEST_SUITE() {
 
     TEST_SUITE_SUCCESS("Parser");
 }
-int main(int argc, char const *argv[]) {
+int main(int argc, char const *argv[])
+{
     PARSER_TEST_SUITE();
     return 0;
 }
