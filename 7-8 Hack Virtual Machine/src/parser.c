@@ -51,7 +51,7 @@ static TypeMapping mapping[] =
      {"return", RETURN}};
 
 /**************************************************************************************/
-void outPath(const char *in_path, char *out_path)
+void outPath(const char *in_path, char **out_path)
 {
     // check valid .vmm format
     if (strstr(in_path, ".vm") == NULL)
@@ -61,7 +61,7 @@ void outPath(const char *in_path, char *out_path)
     }
 
     // returned path = beginning to . + ".asm"
-    out_path = (char *)malloc(sizeof(*out_path) * (strlen(in_path) + 1));
+    *out_path = (char *)malloc(sizeof(*out_path) * (strlen(in_path) + 1));
 
     char *dot = strrchr(in_path, '.');
     strcpy(out_path, dot - in_path);
