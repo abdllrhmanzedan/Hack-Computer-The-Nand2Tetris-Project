@@ -52,6 +52,13 @@ void test_outPath()
     eval_outPath("Invalid format case", "sds/sds/.vm/file", NULL);
 }
 
+void test_fileName()
+{
+    char *filename = NULL;
+    fileName("meow.vm", &filename);
+    printf("%s mwo", filename);
+}
+
 void eval_fixInstruction(const char *case_, const char *in, const char *acc)
 {
     // printCase(case_, "fixInstruction");
@@ -240,6 +247,7 @@ void test_parser()
 int main(int argc, char const *argv[])
 {
     // test_outPath();
+    test_fileName();
     // test_fixInstruction();
     // test_type();
     // test_arg();

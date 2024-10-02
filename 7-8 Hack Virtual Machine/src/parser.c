@@ -60,6 +60,21 @@ void outPath(const char *in_path, char **out_path)
     strcat(*out_path, ".asm");
 }
 
+void fileName(const char *in_path, char **filename)
+{
+    char *last_slash = strchr(in_path, '\\');
+    if (last_slash == NULL)
+        *filename = strdup(in_path);
+    else
+        *filename = strdup(last_slash + 1);
+    char *temp = *filename + strlen(*filename) - 1;
+    while (*temp != '.')
+    {
+        *temp = '\0';
+        temp--;
+    }
+}
+
 void removeSpaces(char **line)
 {
     // remove leading spaces

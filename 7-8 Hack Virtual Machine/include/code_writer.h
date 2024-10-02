@@ -22,10 +22,11 @@ struct CodeWriter
 
     /**
      * @brief writes the equivalent hack-assembly instructions for push operation
-     * @param instr vm instruction
+     * @param segment which segment to operate on
+     * @param index the index inside the segment
      * @param out stream to write to
      */
-    void (*writePush)(char *instr, FILE *out);
+    void (*writePush)(const char *segment, const char *index, FILE *out);
 
     /**
      * @brief writes the equivalent hack-assembly instructions for pop operation
