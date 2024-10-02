@@ -28,6 +28,7 @@ enum Type
     CALL,
     RETURN,
     UNKOWN,
+    COMMENT,
     ERROR
 };
 
@@ -48,24 +49,73 @@ static TypeMapping mapping[] =
      {"if-goto", IF},
      {"function", FUNCTION},
      {"call", CALL},
-     {"return", RETURN}};
+     {"return", RETURN},
+     {"//", COMMENT}};
 
-/**************************************************************************************/
+/********************************************************************************************/
 void outPath(const char *in_path, char **out_path)
 {
-    // check valid .vmm format
-    if (strstr(in_path, ".vm") == NULL)
+    // check valid extention/format
+    const char *extention = strrchr(in_path, '.');
+    if (extention == NULL || strcmp(extention, ".vm") != 0)
     {
-        consoleLog("Wrong file formate in parser.c::outPath(char*, char*)", WARNING);
+        consoleLog("Wrong file formate in outPath", WARNING);
         return;
     }
 
     // returned path = beginning to . + ".asm"
-    *out_path = (char *)malloc(sizeof(*out_path) * (strlen(in_path) + 1));
+    // +2 to replace "vm" with "asm"
+    int size = strlen(in_path) + 2;
+    *out_path = (char *)malloc(size);
+    if (*out_path == NULL)
+    {
+        consoleLog("Memory allocation failed in outPath", CRITICAL);
+        return;
+    }
+    memset(*out_path, 0, size);
+    strncpy(*out_path, in_path, extention - in_path);
+    strcat(*out_path, ".asm");
+}
 
-    char *dot = strrchr(in_path, '.');
-    strcpy(out_path, dot - in_path);
-    strcat(out_path, ".asm");
+void removeSpaces(char **line)
+{
+    // remove leading spaces
+    while (**line == ' ')
+        (*line)++;
+
+    char *end = *line + strlen(*line) - 1;
+
+    // remove trailing spaces
+    while (end > *line && (*end == ' ' || *end == '\n'))
+    {
+        *end = '\0';
+        end--;
+    }
+}
+
+void fixInstruction(char *line, char **instr)
+{
+    // remove leading and trailing spaces in line
+    removeSpaces(&line);
+    *instr = strdup(line);
+    if (*instr == NULL)
+        return;
+
+    // remove comments
+    int n = strlen(*instr);
+    bool comment = 0;
+    for (int i = 0; i < n; i++)
+    {
+        // start of the comment
+        if (comment || (*instr)[i] == '/' || (*instr)[i] == '\n')
+        {
+            (*instr)[i] = '\0';
+            comment = 1;
+        }
+    }
+
+    // remove trailing
+    removeSpaces(&(*instr));
 }
 
 bool isArithmetic(const char *instr)
@@ -122,15 +172,15 @@ Type type(const char *instr)
     return ret;
 }
 
-void arg1(const char *instr, char *arg)
+void arg1(const char *instr, char **arg)
 {
     // all instruction has first argument
     Type instr_type = type(instr);
 
     // arithmetic/logical: arg1 = operation
-    if (instr_type == ARITHMETIC || instr_type == LOGICAL)
+    if (instr_type == ARITHMETIC || instr_type == LOGICAL || instr_type == RETURN)
     {
-        strcpy(arg, instr);
+        *arg = strdup(instr);
         return;
     }
     char *space1 = strchr(instr, ' ');
@@ -141,7 +191,9 @@ void arg1(const char *instr, char *arg)
     {
         if (space1 != NULL)
         {
-            strcpy(arg, space1 + 1); // +1 to ignore the space
+            *arg = strdup(space1 + 1); // +1 to ignore the space
+            if (*arg == NULL)
+                return;
         }
         return;
     }
@@ -152,20 +204,25 @@ void arg1(const char *instr, char *arg)
     {
         // space1+1 => to ignore the space
         // space2 - space1 - 1 => number of elements in range (space1, space2)
-        strncpy(arg, space1 + 1, space2 - space1 - 1);
+        *arg = strdup(space1 + 1);
+        if (*arg == NULL)
+            return;
+
+        int end = space2 - space1 - 1;
+        (*arg)[end] = '\0';
     }
 }
 
-void arg2(const char *instr, char *arg)
+void arg2(const char *instr, char **arg)
 {
     // only push/pop/function/call has second argument
     Type instr_type = type(instr);
 
-    if (instr_type != PUSH && instr_type != POP && instr_type != FUNCTION || instr_type != CALL)
+    if (instr_type != PUSH && instr_type != POP && instr_type != FUNCTION && instr_type != CALL)
         return;
 
     char *space2 = strrchr(instr, ' ');
-    strcpy(arg, space2 + 1);
+    *arg = strdup(space2 + 1);
 }
 
 Parser *newParser()

@@ -18,16 +18,15 @@ void translate(const char *path)
     FILE *in_file = fopen(path, "r");
 
     char *out_path = NULL;
-    parser->outPath(in_file, &out_path);
+    parser->outPath(in_file, out_path);
     if (out_path == NULL)
         return;
 
     FILE *out_file = fopen(out_path, "w");
 
-    char instr[256];
-    memset(instr, 0, sizeof(instr));
-    int instr_size = 0;
-    while (fgets(instr, sizeof(instr), in_file) != NULL)
+    char line[256];
+    memset(line, 0, sizeof(line));
+    while (fgets(line, sizeof(line), in_file) != NULL)
     {
     }
 

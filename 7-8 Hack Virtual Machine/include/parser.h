@@ -19,7 +19,7 @@ struct Parser
      * @param in_path the path to the .vm file
      * @param out_path the path to .asm to write data to
      */
-    void (*outPath)(const char *in_path, char *out_path);
+    void (*outPath)(const char *in_path, char **out_path);
 
     /**
      * @brief gets the type of some instruction
@@ -33,14 +33,14 @@ struct Parser
      * @param instr instruction to process
      * @param arg buffer to hold the content of the first part of some instruction
      */
-    void (*arg1)(const char *instr, char *arg);
+    void (*arg1)(const char *instr, char **arg);
 
     /**
      * @brief gets the second part of some instruction
      * @param instr instruction to process
      * @param arg buffer to hold the content of the second part of some instruction
      */
-    void (*arg2)(const char *instr, char *arg);
+    void (*arg2)(const char *instr, char **arg);
 };
 
 /**
