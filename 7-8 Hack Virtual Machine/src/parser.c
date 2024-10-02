@@ -73,6 +73,8 @@ void fileName(const char *in_path, char **filename)
         *temp = '\0';
         temp--;
     }
+    // remove '.'
+    *temp = '\0';
 }
 
 void removeSpaces(char **line)
