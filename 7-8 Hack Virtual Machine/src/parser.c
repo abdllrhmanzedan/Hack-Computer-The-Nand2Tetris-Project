@@ -15,23 +15,6 @@
 // global variables
 typedef struct TypeMapping TypeMapping;
 
-enum Type
-{
-    ARITHMETIC,
-    LOGICAL,
-    PUSH,
-    POP,
-    LABEL,
-    GOTO,
-    IF,
-    FUNCTION,
-    CALL,
-    RETURN,
-    UNKOWN,
-    COMMENT,
-    ERROR
-};
-
 struct TypeMapping
 {
     const char *keyword;
@@ -230,6 +213,7 @@ Parser *newParser()
     Parser *instance = (Parser *)malloc(sizeof(Parser));
     instance->outPath = &outPath;
     instance->type = &type;
+    instance->fixInstruction = &fixInstruction;
     instance->arg1 = &arg1;
     instance->arg2 = &arg2;
 }
@@ -239,6 +223,7 @@ void deleteParser(Parser **this)
     Parser *instance = *this;
     instance->outPath = NULL;
     instance->type = NULL;
+    instance->fixInstruction = NULL;
     instance->arg1 = NULL;
     instance->arg2 = NULL;
     free(*this);

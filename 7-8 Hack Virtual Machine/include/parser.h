@@ -10,6 +10,23 @@
 typedef struct Parser Parser;
 typedef enum Type Type;
 
+enum Type
+{
+    ARITHMETIC,
+    LOGICAL,
+    PUSH,
+    POP,
+    LABEL,
+    GOTO,
+    IF,
+    FUNCTION,
+    CALL,
+    RETURN,
+    UNKOWN,
+    COMMENT,
+    ERROR
+};
+
 struct Parser
 {
     /**
@@ -27,6 +44,13 @@ struct Parser
      * @returns enum Type indicates the type instr
      */
     Type (*type)(const char *instr);
+
+    /**
+     * @brief extracts an instruction our of the line
+     * @param line input raw line from .vm file
+     * @param instr to save the extracted instruction
+     */
+    void (*fixInstruction)(char *line, char **instr);
 
     /**
      * @brief gets the first part of some instruction

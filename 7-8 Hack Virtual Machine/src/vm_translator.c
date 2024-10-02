@@ -28,6 +28,18 @@ void translate(const char *path)
     memset(line, 0, sizeof(line));
     while (fgets(line, sizeof(line), in_file) != NULL)
     {
+        char *instr = NULL;
+        parser->fixInstruction(line, &instr);
+
+        char *arg1 = NULL;
+        parser->arg1(instr, &arg1);
+
+        char *arg2 = NULL;
+        parser->arg2(instr, &arg2);
+
+        // translate to assembly by coder
+        Type instr_type = parser->type(instr);
+        
     }
 
     // deallocating memory
