@@ -18,7 +18,7 @@ struct CodeWriter
      * @param instr vm instruction
      * @param out stream to write to
      */
-    void (*writeArithmeticLogical)(char *instr, FILE *out);
+    void (*writeArithmeticLogical)(FILE *out, const char *filename, const char *instr);
 
     /**
      * @brief writes the equivalent hack-assembly instructions for push operation
@@ -26,14 +26,14 @@ struct CodeWriter
      * @param index the index inside the segment
      * @param out stream to write to
      */
-    void (*writePush)(const char *segment, const char *index, FILE *out);
+    void (*writePush)(FILE *out, const char *filename, const char *segment, const char *index);
 
     /**
      * @brief writes the equivalent hack-assembly instructions for pop operation
      * @param instr vm instruction
      * @param out stream to write to
      */
-    void (*writePop)(char *instr, FILE *out);
+    void (*writePop)(FILE *out, const char *filename, const char *segment, const char *index);
 };
 
 /**

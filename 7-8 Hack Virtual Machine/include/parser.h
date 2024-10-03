@@ -38,6 +38,8 @@ struct Parser
      */
     void (*outPath)(const char *in_path, char **out_path);
 
+    void (*fileName)(const char *in_path, char **filename);
+
     /**
      * @brief gets the type of some instruction
      * @param instr instruction from .vm file to get its type

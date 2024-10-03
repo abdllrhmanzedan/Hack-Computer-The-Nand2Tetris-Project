@@ -11,8 +11,6 @@ typedef struct VMTranslator VMTranslator;
 
 struct VMTranslator
 {
-    int instruction_number;
-
     /**
      * @brief translates .vm file to .asm file
      * @param path to the .vm file

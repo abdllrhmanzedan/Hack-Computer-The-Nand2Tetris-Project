@@ -34,7 +34,7 @@ struct tm *log_time_info;
 char timestamp[25];
 
 // logging files helpers
-FILE *file = NULL;
+FILE *logfile = NULL;
 
 // logging functionalities
 void getTimeStamp()
@@ -58,18 +58,18 @@ void consoleLog(const char *message, LOGLEVEL level)
 
 void openLogFile(const char *path)
 {
-    file = fopen(path, "w");
+    logfile = fopen(path, "w");
 }
 
 void fileLog(const char *message, LOGLEVEL level)
 {
-    if (file == NULL)
+    if (logfile == NULL)
     {
         consoleLog("Log file isn't open!", CRITICAL);
         return;
     }
     getTimeStamp();
-    fprintf(file, "%s[%s] %-10s : %s %s\n",
+    fprintf(logfile, "%s[%s] %-10s : %s %s\n",
             log_level_color[level], timestamp, log_level_string[level], message, reset_color);
 }
 

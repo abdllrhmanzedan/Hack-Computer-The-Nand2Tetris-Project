@@ -229,6 +229,7 @@ Parser *newParser()
 {
     Parser *instance = (Parser *)malloc(sizeof(Parser));
     instance->outPath = &outPath;
+    instance->fileName = &fileName;
     instance->type = &type;
     instance->fixInstruction = &fixInstruction;
     instance->arg1 = &arg1;

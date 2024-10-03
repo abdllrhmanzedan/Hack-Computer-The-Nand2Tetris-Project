@@ -4,8 +4,10 @@
  * @brief declares the implementation and internals of the CodeWriter
  */
 
-#include "../include/code_writer.h"
 #include <string.h>
+#include <stdlib.h>
+
+#include "../include/code_writer.h"
 
 const char *segments_name[] = {"local", "argument", "this", "that"};
 const char *segments_base[] = {"LCL", "ARG", "THIS", "THAT"};
@@ -22,14 +24,13 @@ void writeArithmeticLogical(FILE *out, const char *filename, const char *instr)
 
     static int cnt = 0;
 
+    fprintf(out, "@SP\n");
+    fprintf(out, "M=M-1\n");
+
     // D=stack.top()
     fprintf(out, "@SP\n");
     fprintf(out, "A=M\n");
     fprintf(out, "D=M\n");
-
-    // stack.pop()
-    fprintf(out, "@SP\n");
-    fprintf(out, "M=M-1\n");
 
     // doesn't need other operand
     if (strcmp(instr, "neg") == 0)
@@ -43,6 +44,11 @@ void writeArithmeticLogical(FILE *out, const char *filename, const char *instr)
     }
     else
     {
+
+        // stack.pop()
+        fprintf(out, "@SP\n");
+        fprintf(out, "M=M-1\n");
+
         // D=stack.top()
         fprintf(out, "@SP\n");
         fprintf(out, "A=M\n");
@@ -50,32 +56,33 @@ void writeArithmeticLogical(FILE *out, const char *filename, const char *instr)
         // operation
         if (strcmp(instr, "add") == 0)
         {
-            fprintf(out, "D=M+D\n");
+            fprintf(out, "D=D+M\n");
         }
         else if (strcmp(instr, "sub") == 0)
         {
-            fprintf(out, "D=M-D\n");
+            fprintf(out, "D=D-M\n");
+            fprintf(out, "D=-D\n");
         }
         else if (strcmp(instr, "and") == 0)
         {
-            fprintf(out, "D=M&D\n");
+            fprintf(out, "D=D&M\n");
         }
         else if (strcmp(instr, "or") == 0)
         {
-            fprintf(out, "D=M|D\n");
+            fprintf(out, "D=D&M\n");
         }
         else
         {
-            fprintf(out, "D=M-D\n");
+            fprintf(out, "D=D-M\n");
             // filename_operation_cnt
             fprintf(out, "@%s_%s_%d\n", filename, instr, cnt);
 
             if (strcmp(instr, "eq") == 0)
                 fprintf(out, "D;JEQ\n");
             else if (strcmp(instr, "gt") == 0)
-                fprintf(out, "D;JGT\n");
-            else
                 fprintf(out, "D;JLT\n");
+            else
+                fprintf(out, "D;JGT\n");
 
             // not true
             fprintf(out, "D=0\n");
@@ -85,9 +92,6 @@ void writeArithmeticLogical(FILE *out, const char *filename, const char *instr)
             fprintf(out, "D=1\n");
             cnt++;
         }
-        // stack.pop()
-        fprintf(out, "@SP\n");
-        fprintf(out, "M=M-1\n");
     }
 
     // stack.push(D)
@@ -215,8 +219,19 @@ void writePop(FILE *out, const char *filename, const char *segment, const char *
 
 CodeWriter *newCodeWriter()
 {
+    CodeWriter *instance = (CodeWriter *)malloc(sizeof(CodeWriter));
+    instance->writeArithmeticLogical = &writeArithmeticLogical;
+    instance->writePop = &writePop;
+    instance->writePush = &writePush;
 }
 
 void deleteCodeWriter(CodeWriter **this)
 {
+    CodeWriter *instance = *this;
+    instance->writeArithmeticLogical = NULL;
+    instance->writePop = NULL;
+    instance->writePush = NULL;
+
+    free(*this);
+    *this = NULL;
 }
