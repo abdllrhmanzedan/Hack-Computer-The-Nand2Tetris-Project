@@ -5,8 +5,10 @@
  */
 
 #include "../include/code_writer.h"
+#include <string.h>
 
-const char *segments[] = {"LCL", "ARG", "THIS", "THAT"};
+const char *segments_name[] = {"local", "argument", "this", "that"};
+const char *segments_base[] = {"LCL", "ARG", "THIS", "THAT"};
 
 void writeArithmeticLogical(FILE *out, const char *filename, const char *instr)
 {
@@ -16,7 +18,7 @@ void writeArithmeticLogical(FILE *out, const char *filename, const char *instr)
      * A=M
      * D=D+M  // D=D+st.top()
      */
-    fprintf(out, "\\ %s\n", instr);
+    fprintf(out, "// %s\n", instr);
 
     static int cnt = 0;
 
@@ -69,11 +71,11 @@ void writeArithmeticLogical(FILE *out, const char *filename, const char *instr)
             fprintf(out, "@%s_%s_%d\n", filename, instr, cnt);
 
             if (strcmp(instr, "eq") == 0)
-                fprintf(out, "D;JEQ");
+                fprintf(out, "D;JEQ\n");
             else if (strcmp(instr, "gt") == 0)
-                fprintf(out, "D;JGT");
+                fprintf(out, "D;JGT\n");
             else
-                fprintf(out, "D;JLT");
+                fprintf(out, "D;JLT\n");
 
             // not true
             fprintf(out, "D=0\n");
@@ -84,8 +86,8 @@ void writeArithmeticLogical(FILE *out, const char *filename, const char *instr)
             cnt++;
         }
         // stack.pop()
-        fprintf(out, "@SP");
-        fprintf(out, "M=M-1");
+        fprintf(out, "@SP\n");
+        fprintf(out, "M=M-1\n");
     }
 
     // stack.push(D)
@@ -101,7 +103,7 @@ int loadAddress(FILE *out, const char *filename, const char *segment, const char
     // local, arg, this, that
     for (int i = 0; i < 4; i++)
     {
-        if (strcmp(segment, segments[i]) == 0)
+        if (strcmp(segment, segments_name[i]) == 0)
         {
             /**
              * @segment
@@ -110,37 +112,36 @@ int loadAddress(FILE *out, const char *filename, const char *segment, const char
              * A=D+A       A=base address + index
              * ...
              */
-            fprintf(out, "@%s\n", segment); //
-            fprintf(out, "D=M\n");          // D=base_address
-            fprintf(out, "@%d\n", index);   //
-            fprintf(out, "A=D+A\n");        // M = RAM[segment + i]
+            fprintf(out, "@%s\n", segments_base[i]); //
+            fprintf(out, "D=M\n");                   // D=base_address
+            fprintf(out, "@%s\n", index);            //
+            fprintf(out, "AD=D+A\n");                // M = RAM[segment + i]
             return 0;
         }
     }
 
     if (strcmp(segment, "constant") == 0)
     {
-        fprintf(out, "@%d\n", index);
+        fprintf(out, "@%s\n", index);
         return 1;
     }
 
     if (strcmp(segment, "static") == 0)
     {
-        fprintf(out, "@%s.%d\n", filename, index);
+        fprintf(out, "@%s.%s\n", filename, index);
     }
 
     if (strcmp(segment, "temp") == 0)
     {
         fprintf(out, "@5\n");
         fprintf(out, "D=A\n");
-        fprintf(out, "@%d\n", index);
-        fprintf(out, "D=D+A\n");
-        fprintf(out, "A=D"); // A=5+index
+        fprintf(out, "@%s\n", index);
+        fprintf(out, "AD=D+A\n");
     }
 
     if (strcmp(segment, "pointer") == 0)
     {
-        if (index == 0)
+        if (strcmp(index, "0") == 0)
             fprintf(out, "@THIS\n");
 
         else
@@ -158,7 +159,7 @@ void writePush(FILE *out, const char *filename, const char *segment, const char 
      * @SP    // sp++
      * M=M+1
      */
-    fprintf(out, "// push %s %s", segment, index);
+    fprintf(out, "// push %s %s\n", segment, index);
 
     int seg = loadAddress(out, filename, segment, index);
     if (seg == 0)
@@ -182,23 +183,34 @@ void writePush(FILE *out, const char *filename, const char *segment, const char 
 void writePop(FILE *out, const char *filename, const char *segment, const char *index)
 {
     /**
+     * loading the address to A
+     * D=A
      * @SP
      * M=M-1
      * @SP
      * A=M
-     * D=M
-     * loading the address to A
      * M=D
      */
-    fprintf(out, "// pop %s %s", segment, index);
+    fprintf(out, "// pop %s %s\n", segment, index);
 
-    printf(out, "@SP\n");
-    printf(out, "M=M-1\n");
-    printf(out, "@SP\n");
-    printf(out, "A=M\n");
-    printf(out, "D=M\n");
     loadAddress(out, filename, segment, index); // no pop constant;
-    printf(out, "M=D\n");
+
+    if (strcmp(segment, "static") == 0 || strcmp(segment, "pointer") == 0)
+        fprintf(out, "D=A\n");
+
+    // saving address in R13
+    fprintf(out, "@R13\n");
+    fprintf(out, "M=D\n");
+
+    // loading data in D
+    fprintf(out, "@SP\n");
+    fprintf(out, "AM=M-1\n");
+    fprintf(out, "D=M\n");
+
+    // RAM[address] = D
+    fprintf(out, "@R13\n");
+    fprintf(out, "A=M\n");
+    fprintf(out, "M=D\n\n");
 }
 
 CodeWriter *newCodeWriter()
