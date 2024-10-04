@@ -20,45 +20,47 @@ void writeArithmeticLogical(FILE *out, const char *filename, const char *instr)
      * A=M
      * D=D+M  // D=D+st.top()
      */
-    fprintf(out, "// %s\n", instr);
+    // fprintf(out, "// %s\n", instr);
 
     static int cnt = 0;
-
-    fprintf(out, "@SP\n");
-    fprintf(out, "AM=M-1\n");
-    fprintf(out, "D=M\n");
 
     // doesn't need other operand
     if (strcmp(instr, "neg") == 0)
     {
-        fprintf(out, "D=-D\n");
+        fprintf(out, "@SP\n");
+        fprintf(out, "A=M-1\n");
+        fprintf(out, "M=-M\n");
     }
     else if (strcmp(instr, "not") == 0)
     {
-        fprintf(out, "D=!D\n");
+        fprintf(out, "@SP\n");
+        fprintf(out, "A=M-1\n");
+        fprintf(out, "M=!M\n");
     }
     else
     {
-        // stack.pop()
         fprintf(out, "@SP\n");
         fprintf(out, "AM=M-1\n");
+        fprintf(out, "D=M\n");
+
+        fprintf(out, "A=A-1\n");
 
         // operation
         if (strcmp(instr, "add") == 0)
         {
-            fprintf(out, "D=D+M\n");
+            fprintf(out, "M=D+M\n");
         }
         else if (strcmp(instr, "sub") == 0)
         {
-            fprintf(out, "D=M-D\n");
+            fprintf(out, "M=M-D\n");
         }
         else if (strcmp(instr, "and") == 0)
         {
-            fprintf(out, "D=D&M\n");
+            fprintf(out, "M=D&M\n");
         }
         else if (strcmp(instr, "or") == 0)
         {
-            fprintf(out, "D=D|M\n");
+            fprintf(out, "M=D|M\n");
         }
         else
         {
@@ -83,15 +85,14 @@ void writeArithmeticLogical(FILE *out, const char *filename, const char *instr)
 
             fprintf(out, "(%s_%s_%dfalse)\n", filename, instr, cnt);
             cnt++;
+
+            // stack.push(D)
+            fprintf(out, "@SP\n");
+            fprintf(out, "A=M-1\n");
+            fprintf(out, "M=D\n");
         }
     }
-
-    // stack.push(D)
-    fprintf(out, "@SP\n");
-    fprintf(out, "A=M\n");
-    fprintf(out, "M=D\n");
-    fprintf(out, "@SP\n");
-    fprintf(out, "M=M+1\n\n");
+    // fprintf(out, "\n");
 }
 
 int loadAddress(FILE *out, const char *filename, const char *segment, const char *index)
@@ -155,7 +156,7 @@ void writePush(FILE *out, const char *filename, const char *segment, const char 
      * @SP    // sp++
      * M=M+1
      */
-    fprintf(out, "// push %s %s\n", segment, index);
+    // fprintf(out, "// push %s %s\n", segment, index);
 
     int seg = loadAddress(out, filename, segment, index);
     if (seg == 0)
@@ -170,10 +171,9 @@ void writePush(FILE *out, const char *filename, const char *segment, const char 
     }
 
     fprintf(out, "@SP\n");
-    fprintf(out, "A=M\n");
+    fprintf(out, "AM=M+1\n");
+    fprintf(out, "A=A-1\n");
     fprintf(out, "M=D\n");
-    fprintf(out, "@SP\n");
-    fprintf(out, "M=M+1\n\n");
 }
 
 void writePop(FILE *out, const char *filename, const char *segment, const char *index)
@@ -187,7 +187,7 @@ void writePop(FILE *out, const char *filename, const char *segment, const char *
      * A=M
      * M=D
      */
-    fprintf(out, "// pop %s %s\n", segment, index);
+    // fprintf(out, "// pop %s %s\n", segment, index);
 
     loadAddress(out, filename, segment, index); // no pop constant;
 
@@ -206,7 +206,7 @@ void writePop(FILE *out, const char *filename, const char *segment, const char *
     // RAM[address] = D
     fprintf(out, "@R13\n");
     fprintf(out, "A=M\n");
-    fprintf(out, "M=D\n\n");
+    fprintf(out, "M=D\n");
 }
 
 CodeWriter *newCodeWriter()
