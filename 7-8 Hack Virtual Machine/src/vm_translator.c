@@ -46,11 +46,37 @@ void translate(const char *path)
         // translate to assembly by coder
         Type instr_type = parser->type(instr);
         if (instr_type == ARITHMETIC || instr_type == LOGICAL)
+        {
             code_writer->writeArithmeticLogical(out_file, filename, arg1);
+        }
         else if (instr_type == PUSH)
+        {
             code_writer->writePush(out_file, filename, arg1, arg2);
+        }
         else if (instr_type == POP)
+        {
             code_writer->writePop(out_file, filename, arg1, arg2);
+        }
+        else if (instr_type == LABEL || instr_type == GOTO || instr_type == IF)
+        {
+            char *type_str = NULL;
+
+            if (instr_type == LABEL)
+            {
+                type_str = strdup("label");
+            }
+            else if (instr_type == GOTO)
+            {
+                type_str = strdup("goto");
+            }
+            else
+            {
+                type_str = strdup("if-goto");
+            }
+
+            code_writer->writeBranching(out_file, type_str, arg1);
+            free(type_str);
+        }
     }
 
     // deallocating memory

@@ -209,12 +209,34 @@ void writePop(FILE *out, const char *filename, const char *segment, const char *
     fprintf(out, "M=D\n");
 }
 
+void writeBranching(FILE *out, const char *instr, const char *label)
+{
+    if (strcmp(instr, "goto") == 0)
+    {
+        fprintf(out, "@%s\n", label);
+        fprintf(out, "0;JMP\n");
+    }
+    else if (strcmp(instr, "if-goto") == 0)
+    {
+        fprintf(out, "@SP\n");
+        fprintf(out, "AM=M-1\n");
+        fprintf(out, "D=M\n");
+        fprintf(out, "@%s\n", label);
+        fprintf(out, "D;JGT\n");
+    }
+    else
+    {
+        fprintf(out, "(%s)\n", label);
+    }
+}
+
 CodeWriter *newCodeWriter()
 {
     CodeWriter *instance = (CodeWriter *)malloc(sizeof(CodeWriter));
     instance->writeArithmeticLogical = &writeArithmeticLogical;
     instance->writePop = &writePop;
     instance->writePush = &writePush;
+    instance->writeBranching = &writeBranching;
 }
 
 void deleteCodeWriter(CodeWriter **this)
@@ -223,6 +245,7 @@ void deleteCodeWriter(CodeWriter **this)
     instance->writeArithmeticLogical = NULL;
     instance->writePop = NULL;
     instance->writePush = NULL;
+    instance->writeBranching = NULL;
 
     free(*this);
     *this = NULL;

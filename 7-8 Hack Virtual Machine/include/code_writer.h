@@ -34,6 +34,8 @@ struct CodeWriter
      * @param out stream to write to
      */
     void (*writePop)(FILE *out, const char *filename, const char *segment, const char *index);
+
+    void (*writeBranching)(FILE *out, const char *instr, const char *label);
 };
 
 /**

@@ -80,7 +80,7 @@ void fileName(const char *in_path, char **filename)
 void removeSpaces(char **line)
 {
     // remove leading spaces
-    while (**line == ' ')
+    while (**line && **line == '\t')
         (*line)++;
 
     char *end = *line + strlen(*line) - 1;
