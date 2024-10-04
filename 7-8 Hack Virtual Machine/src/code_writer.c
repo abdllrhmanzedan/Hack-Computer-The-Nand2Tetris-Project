@@ -25,17 +25,12 @@ void writeArithmeticLogical(FILE *out, const char *filename, const char *instr)
     static int cnt = 0;
 
     fprintf(out, "@SP\n");
-    fprintf(out, "M=M-1\n");
-
-    // D=stack.top()
-    fprintf(out, "@SP\n");
-    fprintf(out, "A=M\n");
+    fprintf(out, "AM=M-1\n");
     fprintf(out, "D=M\n");
 
     // doesn't need other operand
     if (strcmp(instr, "neg") == 0)
     {
-        // negating
         fprintf(out, "D=-D\n");
     }
     else if (strcmp(instr, "not") == 0)
@@ -44,14 +39,9 @@ void writeArithmeticLogical(FILE *out, const char *filename, const char *instr)
     }
     else
     {
-
         // stack.pop()
         fprintf(out, "@SP\n");
-        fprintf(out, "M=M-1\n");
-
-        // D=stack.top()
-        fprintf(out, "@SP\n");
-        fprintf(out, "A=M\n");
+        fprintf(out, "AM=M-1\n");
 
         // operation
         if (strcmp(instr, "add") == 0)
@@ -60,8 +50,7 @@ void writeArithmeticLogical(FILE *out, const char *filename, const char *instr)
         }
         else if (strcmp(instr, "sub") == 0)
         {
-            fprintf(out, "D=D-M\n");
-            fprintf(out, "D=-D\n");
+            fprintf(out, "D=M-D\n");
         }
         else if (strcmp(instr, "and") == 0)
         {
@@ -73,8 +62,7 @@ void writeArithmeticLogical(FILE *out, const char *filename, const char *instr)
         }
         else
         {
-            fprintf(out, "D=D-M\n");
-            fprintf(out, "D=-D\n");
+            fprintf(out, "D=M-D\n");
 
             // filename_operation_cnt
             fprintf(out, "@%s%s%dtrue\n", filename, instr, cnt);
@@ -87,13 +75,13 @@ void writeArithmeticLogical(FILE *out, const char *filename, const char *instr)
                 fprintf(out, "D;JLT\n");
 
             fprintf(out, "D=0\n");
-            fprintf(out, "@%s%s%dfalse\n", filename, instr, cnt);
+            fprintf(out, "@%s_%s_%dfalse\n", filename, instr, cnt);
             fprintf(out, "0;JMP\n");
 
             fprintf(out, "(%s%s%dtrue)\n", filename, instr, cnt);
-            fprintf(out, "D=1\n");
+            fprintf(out, "D=-1\n");
 
-            fprintf(out, "(%s%s%dfalse)\n", filename, instr, cnt);
+            fprintf(out, "(%s_%s_%dfalse)\n", filename, instr, cnt);
             cnt++;
         }
     }
