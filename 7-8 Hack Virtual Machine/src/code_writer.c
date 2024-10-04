@@ -69,27 +69,31 @@ void writeArithmeticLogical(FILE *out, const char *filename, const char *instr)
         }
         else if (strcmp(instr, "or") == 0)
         {
-            fprintf(out, "D=D&M\n");
+            fprintf(out, "D=D|M\n");
         }
         else
         {
             fprintf(out, "D=D-M\n");
+            fprintf(out, "D=-D\n");
+
             // filename_operation_cnt
-            fprintf(out, "@%s_%s_%d\n", filename, instr, cnt);
+            fprintf(out, "@%s%s%dtrue\n", filename, instr, cnt);
 
             if (strcmp(instr, "eq") == 0)
                 fprintf(out, "D;JEQ\n");
             else if (strcmp(instr, "gt") == 0)
-                fprintf(out, "D;JLT\n");
-            else
                 fprintf(out, "D;JGT\n");
+            else
+                fprintf(out, "D;JLT\n");
 
-            // not true
             fprintf(out, "D=0\n");
+            fprintf(out, "@%s%s%dfalse\n", filename, instr, cnt);
+            fprintf(out, "0;JMP\n");
 
-            // true
-            fprintf(out, "(%s_%s_%d)\n", filename, instr, cnt);
+            fprintf(out, "(%s%s%dtrue)\n", filename, instr, cnt);
             fprintf(out, "D=1\n");
+
+            fprintf(out, "(%s%s%dfalse)\n", filename, instr, cnt);
             cnt++;
         }
     }
