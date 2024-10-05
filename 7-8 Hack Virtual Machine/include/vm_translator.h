@@ -15,7 +15,9 @@ struct VMTranslator
      * @brief translates .vm file to .asm file
      * @param path to the .vm file
      */
-    void (*translate)(const char *path);
+    void (*translateFile)(const char *path);
+
+    void (*translateDir)(const char *dir_path);
 };
 
 /**

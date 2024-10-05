@@ -36,6 +36,14 @@ struct CodeWriter
     void (*writePop)(FILE *out, const char *filename, const char *segment, const char *index);
 
     void (*writeBranching)(FILE *out, const char *instr, const char *label);
+
+    void (*writeCall)(FILE *out, const char *function_name, const char *n_args);
+
+    void (*writeFunction)(FILE *out, const char *function_name, const char *n_vars);
+
+    void (*writeReturn)(FILE *out);
+
+    void (*writeInit)(FILE *out);
 };
 
 /**

@@ -20,7 +20,7 @@ void writeArithmeticLogical(FILE *out, const char *filename, const char *instr)
      * A=M
      * D=D+M  // D=D+st.top()
      */
-    // fprintf(out, "// %s\n", instr);
+    fprintf(out, "// %s\n", instr);
 
     static int cnt = 0;
 
@@ -156,7 +156,7 @@ void writePush(FILE *out, const char *filename, const char *segment, const char 
      * @SP    // sp++
      * M=M+1
      */
-    // fprintf(out, "// push %s %s\n", segment, index);
+    fprintf(out, "// push %s %s\n", segment, index);
 
     int seg = loadAddress(out, filename, segment, index);
     if (seg == 0)
@@ -187,7 +187,7 @@ void writePop(FILE *out, const char *filename, const char *segment, const char *
      * A=M
      * M=D
      */
-    // fprintf(out, "// pop %s %s\n", segment, index);
+    fprintf(out, "// pop %s %s\n", segment, index);
 
     loadAddress(out, filename, segment, index); // no pop constant;
 
@@ -211,6 +211,7 @@ void writePop(FILE *out, const char *filename, const char *segment, const char *
 
 void writeBranching(FILE *out, const char *instr, const char *label)
 {
+    fprintf(out, "// %s %s\n", instr, label);
     if (strcmp(instr, "goto") == 0)
     {
         fprintf(out, "@%s\n", label);
@@ -222,12 +223,146 @@ void writeBranching(FILE *out, const char *instr, const char *label)
         fprintf(out, "AM=M-1\n");
         fprintf(out, "D=M\n");
         fprintf(out, "@%s\n", label);
-        fprintf(out, "D;JGT\n");
+        fprintf(out, "D;JNE\n");
     }
     else
     {
         fprintf(out, "(%s)\n", label);
     }
+}
+
+void push(FILE *out, const char *val, int direct)
+{
+    fprintf(out, "@%s\n", val);
+    if (direct)
+        fprintf(out, "D=A\n");
+    else
+        fprintf(out, "D=M\n");
+
+    fprintf(out, "@SP\n");
+    fprintf(out, "AM=M+1\n");
+    fprintf(out, "A=A-1\n");
+    fprintf(out, "M=D\n");
+}
+
+void writeCall(FILE *out, const char *function_name, const char *n_args)
+{
+    /**
+     * push return_address
+     * push LCL
+     * push ARG
+     * push THIS
+     * push THAT
+     *
+     * ARG = SP-5-n_args
+     * LCL = SP
+     *
+     * goto function_name
+     *
+     * (return_address)
+     */
+    fprintf(out, "// call %s %s\n", function_name, n_args);
+    static int cnt = 0;
+    char buffer[50];
+    sprintf(buffer, "returnAddress%d", cnt++);
+
+    // pushing 5 addresses to stack
+    push(out, buffer, 1);
+    push(out, "LCL", 0);
+    push(out, "ARG", 0);
+    push(out, "THIS", 0);
+    push(out, "THAT", 0);
+
+    // ARG = SP-5-n_args
+    fprintf(out, "@SP\n");
+    fprintf(out, "D=M\n");
+    fprintf(out, "@5\n");
+    fprintf(out, "D=D-A\n");
+    fprintf(out, "@%s\n", n_args);
+    fprintf(out, "D=D-A\n");
+    fprintf(out, "@ARG\n");
+    fprintf(out, "M=D\n");
+
+    // LCL = SP
+    fprintf(out, "@SP\n");
+    fprintf(out, "D=M\n");
+    fprintf(out, "@LCL\n");
+    fprintf(out, "M=D\n");
+
+    // goto
+    writeBranching(out, "goto", function_name);
+
+    // return address
+    writeBranching(out, "label", buffer);
+}
+
+void writeFunction(FILE *out, const char *function_name, const char *n_vars)
+{
+    fprintf(out, "// function %s %s\n", function_name, n_vars);
+    writeBranching(out, "label", function_name);
+
+    int cnt = atoi(n_vars);
+    while (cnt--)
+        push(out, "0", 1);
+}
+
+void restore(FILE *out, const char *seg)
+{
+    fprintf(out, "@LCL\n");
+    fprintf(out, "AM=M-1\n");
+    fprintf(out, "D=M\n");
+    fprintf(out, "@%s\n", seg);
+    fprintf(out, "M=D\n");
+}
+
+void writeReturn(FILE *out)
+{
+    fprintf(out, "// return\n");
+
+    fprintf(out, "@LCL\n");
+    fprintf(out, "D=M\n");
+    fprintf(out, "@5\n");
+    fprintf(out, "A=D-A\n");
+    fprintf(out, "D=M\n");
+    fprintf(out, "@R14\n"); // R14 = return_address
+    fprintf(out, "M=D\n");
+
+    // *arg = pop (return value)
+    fprintf(out, "@SP\n");
+    fprintf(out, "AM=M-1\n");
+    fprintf(out, "D=M\n");
+    fprintf(out, "@ARG\n");
+    fprintf(out, "A=M\n");
+    fprintf(out, "M=D\n");
+
+    // SP = arg+1
+    fprintf(out, "@ARG\n");
+    fprintf(out, "D=M\n");
+    fprintf(out, "@SP\n");
+    fprintf(out, "M=D+1\n");
+
+    // restoring segments
+    restore(out, "THAT");
+    restore(out, "THIS");
+    restore(out, "ARG");
+    restore(out, "LCL");
+
+    // jump to return address
+    fprintf(out, "@R14\n");
+    fprintf(out, "A=M\n");
+    fprintf(out, "0;JMP\n");
+}
+
+void writeInit(FILE *out)
+{
+    // sp=256
+    fprintf(out, "@256\n");
+    fprintf(out, "D=A\n");
+    fprintf(out, "@SP\n");
+    fprintf(out, "M=D\n");
+
+    // call Sys.init
+    writeCall(out, "Sys.init", "0");
 }
 
 CodeWriter *newCodeWriter()
@@ -237,6 +372,10 @@ CodeWriter *newCodeWriter()
     instance->writePop = &writePop;
     instance->writePush = &writePush;
     instance->writeBranching = &writeBranching;
+    instance->writeCall = &writeCall;
+    instance->writeFunction = &writeFunction;
+    instance->writeReturn = &writeReturn;
+    instance->writeInit = &writeInit;
 }
 
 void deleteCodeWriter(CodeWriter **this)
@@ -246,6 +385,10 @@ void deleteCodeWriter(CodeWriter **this)
     instance->writePop = NULL;
     instance->writePush = NULL;
     instance->writeBranching = NULL;
+    instance->writeCall = NULL;
+    instance->writeFunction = NULL;
+    instance->writeReturn = NULL;
+    instance->writeInit = NULL;
 
     free(*this);
     *this = NULL;
