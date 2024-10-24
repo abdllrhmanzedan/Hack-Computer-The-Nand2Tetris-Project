@@ -17,7 +17,7 @@ Here’s a snapshot of my progress on the journey from Nand to Tetris:
 
 ## From Hack to Tetris: Hack-Computer Software
 6. [x] **[Hack-Assembler](<6 Hack Assembler/README.md>):** Building an Assembler that has the ability to convert Hack-Assembly-Language into Hack-Machine-Language that can be run on a Hack-CPU.
-7. [ ] **Virtual Machine:**
+7. [x] **Virtual Machine(<7-8 Hack Virtual Machine/README.md>):** Design the Jack compiler back-end which is the first tier of `Jack Programming Language` compilation process.
 8. [ ] **High Level Language:**
 9. [ ] **Compiler:**
 10. [ ] **Operating System:**
